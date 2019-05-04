@@ -267,16 +267,21 @@ def plot_band(ax, PGC, xlabel=True, ylabel=True, X_twin=True, Y_twin=True, band=
     Ylm = ax.get_ylim() ; Xlm = ax.get_xlim()
     x0 = 0.9*Xlm[0]+0.1*Xlm[1]
     y0 = 0.15*Ylm[0]+0.85*Ylm[1]
-    ax.text(x0,y0, "m= "+"%.2f" % m0+'$\pm$'+"%.2f" % dm0, fontsize=12)
+    ax.text(x0,y0, r"$s= $"+"%.2f" % m0+'$\pm$'+"%.2f" % dm0, fontsize=12)
     y0 = 0.30*Ylm[0]+0.70*Ylm[1]
-    ax.text(x0,y0, "b= "+"%.2f" % b0+'$\pm$'+"%.2f" % db0, fontsize=12)    
+    ax.text(x0,y0, r"$zp= $"+"%.2f" % b0+'$\pm$'+"%.2f" % db0, fontsize=12)    
     
 
     if ylabel: 
         if band!='w1':
-            ax.set_ylabel(r'$'+band+'^*$', fontsize=18) 
-        else:
+             
+        if: 
+            ax.set_ylabel(r'$'+band+'^*$', fontsize=18)
+        elif band!='w1': 
             ax.set_ylabel(r'$W1^*$', fontsize=18)
+        else band!='w2':
+            ax.set_ylabel(r'$W2^*$', fontsize=18)
+            
     
     if xlabel:
         ax.set_xlabel(r'$Log( W_{mx}^i)$', fontsize=18) 
@@ -431,9 +436,9 @@ def TFonline(clusterName='Coma Cluster', nest='Nest_100001', band='r'):
     p.line(m*y_+b+2.5, y_, line_width=1, color="black", line_dash='dashed')
 
 
-    mytext = Label(x=20, y=290, text="m= "+"%.2f" % m0+'+-'+"%.2f" % dm0, text_color='black', text_font_size='12pt', x_units='screen', y_units='screen')
+    mytext = Label(x=20, y=290, text="s= "+"%.2f" % m0+'+-'+"%.2f" % dm0, text_color='black', text_font_size='12pt', x_units='screen', y_units='screen')
     p.add_layout(mytext)
-    mytext = Label(x=20, y=260, text="b= "+"%.2f" % b0+'+-'+"%.2f" % db0, text_color='black', text_font_size='12pt', x_units='screen', y_units='screen')
+    mytext = Label(x=20, y=260, text="zp= "+"%.2f" % b0+'+-'+"%.2f" % db0, text_color='black', text_font_size='12pt', x_units='screen', y_units='screen')
     p.add_layout(mytext)
 
 
