@@ -14,26 +14,34 @@ from bokeh.embed import components
 from bokeh.models import ColumnDataSource, LabelSet, HoverTool, Range1d, Label, TapTool, OpenURL, CustomJS, CrosshairTool, LinearAxis
 import fitsio
 
+import json
 #########################################################
 gfafile = '~/gfas-dr6.0-dr7.1-PR459.fits'
-
 tilefile='~/ci-tiles-v2.fits'
-
 citls,h=fitsio.read(tilefile,header=True)
-
 gfa=fitsio.read(gfafile)
 
+with open("qa.json", "r") as read_file:
+    data = json.load(read_file)
 
 
-#fig=plt.figure(figsize=(10, 5), dpi=100)
-#ax= fig.add_subplot(111)
-
-#plt.plot(gfa['RA'],gfa['DEC'],marker='.',linestyle='',markersize=0.1,alpha=0.1)
-
-#plt.plot(citls['RA'],citls['DEC'],marker='o',markersize=7,color='orange',alpha=0.3,linestyle='')
-
-#ax.set_ylabel(r'$\rm DEC[deg.]$', fontsize=12)
-#ax.set_xlabel(r'$\rm RA[deg.]$', fontsize=12)
+## Coloring scheme
+palette = ['green', 'red', 'orange']
+dye = []
+for tile in citls['TILEID']:
+    rang = 0 # Default value (green)
+    if str(tile) in data:
+        if len(data[str(tile)]['unassigned'])>0: # not assigned (red)
+            rang = 1 #'red'
+    else: rang = 2  # TileID is not available in the json file (orange)
+    dye.append(rang)
+#########################################################
+###fig=plt.figure(figsize=(10, 5), dpi=100)
+###ax= fig.add_subplot(111)
+###plt.plot(gfa['RA'],gfa['DEC'],marker='.',linestyle='',markersize=0.1,alpha=0.1)
+###plt.plot(citls['RA'],citls['DEC'],marker='o',markersize=7,color='orange',alpha=0.3,linestyle='')
+###ax.set_ylabel(r'$\rm DEC[deg.]$', fontsize=12)
+###ax.set_xlabel(r'$\rm RA[deg.]$', fontsize=12)
 #########################################################
 TOOLS = ['pan', 'tap', 'wheel_zoom', 'box_zoom', 'reset', 'save']
 
@@ -51,8 +59,13 @@ background = ColumnDataSource({'RA': ras, 'DEC': decs})
 pattern = p.circle('RA', 'DEC', source=background, size=15, color='lightsteelblue')
 pattern.nonselection_glyph = None
 
-tiles = ColumnDataSource({'RA': citls['RA'], 'DEC': citls['DEC'], 'TILEID': citls['TILEID']})
-render = p.circle('RA', 'DEC', source=tiles, size=9, line_color='chocolate', color='orange', alpha=0.4, hover_color='red', hover_alpha=1, hover_line_color='red',
+
+from bokeh.transform import linear_cmap
+
+
+mapper = linear_cmap(field_name='DYE', palette=palette, low=0 ,high=2)
+tiles = ColumnDataSource({'RA': citls['RA'], 'DEC': citls['DEC'], 'TILEID': citls['TILEID'], 'DYE':dye})
+render = p.circle('RA', 'DEC', source=tiles, size=9, line_color='chocolate', color=mapper, alpha=0.4, hover_color='red', hover_alpha=1, hover_line_color='red',
                     
                     # set visual properties for selected glyphs
                     selection_fill_color='red',
