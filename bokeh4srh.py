@@ -72,7 +72,7 @@ render = p.circle('RA', 'DEC', source=tiles, size=9, line_color='chocolate', col
                     selection_line_color='red',
                     # set visual properties for non-selected glyphs
                     nonselection_fill_alpha=0.4,
-                    nonselection_fill_color='orange')
+                    nonselection_fill_color=mapper)
 
 
 p.xaxis.axis_label = 'RA [deg]'
