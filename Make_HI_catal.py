@@ -16,6 +16,37 @@ from redTools import *
 from Kcorrect import *
 from linear_mcmc import *
 ########################################################### Begin
+ctl   = np.genfromtxt("NEST_100001.csv" , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
+PGC_calib = ctl['PGC']
+
+calibLST = []
+calibLST += ["NEST_100002.csv"]
+calibLST += ["NEST_100003.csv"]
+calibLST += ["NEST_100005.csv"]
+calibLST += ["NEST_100006.csv"]
+calibLST += ["NEST_100007.csv"]
+calibLST += ["NEST_100008.csv"]
+calibLST += ["NEST_100014.csv"]
+calibLST += ["NEST_100018.csv"]
+calibLST += ["NEST_100030.csv"]
+calibLST += ["NEST_120002.csv"]
+calibLST += ["NEST_200003.csv"]
+calibLST += ["NEST_200005.csv"]
+calibLST += ["NEST_200006.csv"]
+calibLST += ["NEST_200012.csv"]
+calibLST += ["NEST_200015.csv"]
+calibLST += ["NEST_200016.csv"]
+calibLST += ["NEST_200017.csv"]
+calibLST += ["NEST_200037.csv"]
+calibLST += ["NEST_200045.csv"]
+calibLST += ["NEST_200092.csv"]
+
+for cluster in calibLST:
+    ctl   = np.genfromtxt(cluster , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
+    PGC_calib = np.concatenate((PGC_calib, ctl['PGC']))
+
+########################################################### Begin
+
 inFile  = '../ADHI.csv'
 table   = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=None)
 
@@ -232,19 +263,39 @@ cornel=0
 both = 0 
 alll=0
 
+print len(PGC_calib)
+print M
+iter = 0
+jj= 0 
+for id in PGC_calib:
+    if not id in pgc_ESN:
+        print "PGC: ", id
+
+for id in PGC_calib:
+    if not id in pgc and not id in pgc_alfalfa and not id in pgc_cornel:
+        print "PGC (No HI): ", id
+
 for i in range(M):
     
     flag[i] = -1
     fon = " ".join(face_on[i].split())
-    if (Sqlt[i]>0 or (Wqlt[i]>0 or Wqlt[i]<0)) and inc_flg[i]==0:
-        flag[i] = 0
-    elif (fon == 'F' or (inc_flg[i]==1 and 'face_on' in inc_note[i])) and Sqlt[i]>4 and Wqlt[i]>4:   
-        flag[i] = 1
-    elif (fon == 'F' or (inc_flg[i]==1 and 'face_on' in inc_note[i])) and Sqlt[i]>3 and Wqlt[i]>3:   
-        flag[i] = 2        
-    elif (fon == 'F' or (inc_flg[i]==1 and 'face_on' in inc_note[i])) and Sqlt[i]>2 and Wqlt[i]>2:   
-        flag[i] = 3           
+    #if (Sqlt[i]>0 or Wqlt[i]>0 or Wqlt[i]<0) and inc_flg[i]==0:
+        #flag[i] = 0
+    #elif (fon == 'F' or (inc_flg[i]==1 and 'face_on' in inc_note[i])) and Sqlt[i]>4 and Wqlt[i]>4:   
+        #flag[i] = 1
+    #elif (fon == 'F' or (inc_flg[i]==1 and 'face_on' in inc_note[i])) and Sqlt[i]>3 and Wqlt[i]>3:   
+        #flag[i] = 2        
+    #elif (fon == 'F' or (inc_flg[i]==1 and 'face_on' in inc_note[i])) and Sqlt[i]>2 and Wqlt[i]>2:   
+        #flag[i] = 3           
     
+    if inc_flg[i]==0:
+        if Sqlt[i]>0:
+            flag[i] = 0
+        elif Wqlt[i]>0 or Wqlt[i]<0:
+            flag[i] = 0
+
+    if flag[i]>=0:
+        iter+=1
     
     n = 0
     W_tot = 0
@@ -292,6 +343,10 @@ for i in range(M):
     
     if bool1 or bool2: both+=1
     if bool1 or bool2 or bool3: alll+=1
+    if pgc_ESN[i] in pgc or pgc_ESN[i] in pgc_alfalfa or pgc_ESN[i] in pgc_cornel:
+        jj+=1
+    #else:
+        #print pgc_ESN[i] 
           
     n = 0
     F_tot = 0 
@@ -326,7 +381,8 @@ for i in range(M):
     if bol: eF_av_ESN[i] = 0.07*F_av_ESN[i]
             
     
-
+print 'iter: ', iter 
+print 'jj: ', jj
 #plt.show() 
 
 m21 = np.zeros(M)
@@ -351,7 +407,13 @@ for i in range(M):
         logWimx_e[i] = np.sqrt((eWmx_ESN[i]/Wmx_ESN[i])**2+(d_alfa/np.tan(alfa))**2)/np.log(10)
     else: flag[i]=-1
     
+    if not pgc_ESN[i] in PGC_calib:
+        flag[i]=-1
+        
+    
 index = np.where(flag>=0)
+
+print 'iter2: ', len(index[0]) 
 
 pgc_ESN = pgc_ESN[index]
 Wmx_ESN = Wmx_ESN[index]
@@ -499,45 +561,3 @@ myTable.write('ESN_HI_catal_calib.csv', format='ascii.fixed_width',delimiter=','
 
 
 
-
-
-#print alll, both, alf, adhi, cornel
-
-
-#inFile  = 'ESN_HI_catal.csv'   # input catalog
-#table   = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=None)
-
-#table = extinctionCorrect(table)
-#table = Kcorrection(table)
-
-
-#myTable = Table()
-#myTable.add_column(Column(data=pgc_ESN, name='pgc'))
-#myTable.add_column(Column(data=Name, name='Name'))
-#myTable.add_column(Column(data=Wmx_ESN, name='Wmx', dtype=np.dtype(int)))
-#myTable.add_column(Column(data=eWmx_ESN, name='eWmx', dtype=np.dtype(int)))
-#myTable.add_column(Column(data=logWimx, name='logWimx', format='%0.3f'))
-#myTable.add_column(Column(data=logWimx_e, name='logWimx_e', format='%0.3f'))
-#myTable.add_column(Column(data=m21, name='m21', format='%0.2f'))
-#myTable.add_column(Column(data=m21_e, name='m21_e', format='%0.2f'))
-#myTable.add_column(Column(data=u_mag, name='u', format='%0.2f'))
-#myTable.add_column(Column(data=g_mag, name='g', format='%0.2f'))
-#myTable.add_column(Column(data=r_mag, name='r', format='%0.2f'))
-#myTable.add_column(Column(data=i_mag, name='i', format='%0.2f'))
-#myTable.add_column(Column(data=z_mag, name='z', format='%0.2f'))
-#myTable.add_column(Column(data=w1_mag, name='w1'))
-#myTable.add_column(Column(data=w2_mag, name='w2'))
-#myTable.add_column(Column(data=inc, name='inc'))
-#myTable.add_column(Column(data=inc_e, name='inc_e'))
-#myTable.add_column(Column(data=R50_w1, name='R50_w1', format='%0.2f'))
-#myTable.add_column(Column(data=R50_w2, name='R50_w2', format='%0.2f'))
-#myTable.add_column(Column(data=C82_w2, name='C82_w2', format='%0.2f'))
-#myTable.add_column(Column(data=Wba, name='Wba', format='%0.2f'))
-#myTable.add_column(Column(data=table['u'], name='u_', format='%0.2f'))
-#myTable.add_column(Column(data=table['g'], name='g_', format='%0.2f'))
-#myTable.add_column(Column(data=table['r'], name='r_', format='%0.2f'))
-#myTable.add_column(Column(data=table['i'], name='i_', format='%0.2f'))
-#myTable.add_column(Column(data=table['z'], name='z_', format='%0.2f'))
-#myTable.add_column(Column(data=table['w1'], name='w1_', format='%0.2f'))
-#myTable.add_column(Column(data=table['w2'], name='w2_', format='%0.2f'))
-##myTable.write('ESN_HI_catal_4paper.csv', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 

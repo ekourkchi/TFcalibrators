@@ -273,13 +273,11 @@ def plot_band(ax, PGC, xlabel=True, ylabel=True, X_twin=True, Y_twin=True, band=
     
 
     if ylabel: 
-        if band!='w1':
-             
-        if: 
-            ax.set_ylabel(r'$'+band+'^*$', fontsize=18)
-        elif band!='w1': 
+        if band!='w1' and band!='w2':
+            ax.set_ylabel(r'$'+band+'^*$', fontsize=18) 
+        elif band=='w1': 
             ax.set_ylabel(r'$W1^*$', fontsize=18)
-        else band!='w2':
+        elif band=='w2':
             ax.set_ylabel(r'$W2^*$', fontsize=18)
             
     
@@ -746,14 +744,14 @@ batchplot(nest='NEST_200005', clusterName='NGC 410 Cluster')
 batchplot(nest='NEST_200006', clusterName='NGC 507 Cluster')
 batchplot(nest='NEST_200012', clusterName='Abell 400')
 batchplot(nest='NEST_200016', clusterName='Abell 2634/66')
-#batchplot(nest='NEST_200017', clusterName='Abell 539')
+#batchplot(nest='NEST_200017', clusterName='Abell 539') # SOUTH
 batchplot(nest='NEST_200037', clusterName='NGC 70 Cluster')
 batchplot(nest='NEST_200045', clusterName='NGC 80 Cluster')
 batchplot(nest='NEST_200092', clusterName='Pegasus Cluster')
-#batchplot(nest='NEST_100003', clusterName='Centaurus Cluster')
-#batchplot(nest='NEST_100006', clusterName='Hydra Cluster')
-#batchplot(nest='NEST_100014', clusterName='Antlia Cluster')
-#batchplot(nest='NEST_200015', clusterName='Fornax Cluster')
+#batchplot(nest='NEST_100003', clusterName='Centaurus Cluster') # SOUTH
+#batchplot(nest='NEST_100006', clusterName='Hydra Cluster') # SOUTH
+#batchplot(nest='NEST_100014', clusterName='Antlia Cluster') # SOUTH
+#batchplot(nest='NEST_200015', clusterName='Fornax Cluster') # SOUTH
 
 
 
