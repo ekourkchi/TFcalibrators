@@ -18,11 +18,11 @@ from linear_mcmc import *
 
 
 
-#inFile = 'ESN_HI_catal_calib.csv'
-#table = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=None, encoding=None)
-#pgc = table['pgc']
-#Sqlt = table['Sqlt']
-#Wqlt = table['Wqlt']
+inFile = 'ESN_HI_catal_calib.csv'
+table = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=None, encoding=None)
+pgc = table['pgc']
+Sqlt = table['Sqlt']
+Wqlt = table['Wqlt']
 
 #ctl   = np.genfromtxt('NEST_100002.csv' , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
 #PGC = ctl['PGC']
@@ -79,18 +79,35 @@ g_mag = table['g_mag']
 r_mag = table['r_mag']
 i_mag = table['i_mag']
 inc   = table['inc']
+QA_sdss = table['QA_sdss']
+QA_wise = table['QA_wise']
+
+
+inFile  = 'all.alarms'
+table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
+pgc_alarm = table['pgc']
+
+inFile  = 'calibrators.alarms'
+table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
+pgc_calibrators = table['pgc']
 
 
 
-#for i in range(len(pgc_helene)):
-    #if not pgc_helene[i] in pgc_adhi:
-        #if status_helene[i].strip()=='OK':
-            #print  pgc_helene[i], source_helene[i].strip(), status_helene[i]
+
+######################################
+
+#monList = []
+#for i in range(len(pgc_alarm)):
+    #if pgc_alarm[i] in pgc_ESN and not pgc_alarm[i] in monList:
+        #indx, = np.where(pgc_ESN==pgc_alarm[i])
+        #if Sqlt[indx]>1 and inc[indx]>0:
+            #monList.append(pgc_alarm[i])
+            #if not pgc_alarm[i] in pgc_calibrators:
+                #print pgc_alarm[i]
             
 #sys.exit()
 
-
-
+######################################
 
 
 ii=[];jj=[]
@@ -181,7 +198,7 @@ It = np.asarray(It)
 
 indx = []
 for i in range(len(ID)):
-    if INC[i]!=0 and (Sqlt[i]>3 or Wqlt[i]>3) and DEC[i]>-45 and Bt[i]<15 and It[i]<16 and R255[i]<2.1 and INC[i]>60 and (Bt[i]>0 or It[i]>0):
+    if INC[i]!=0 and (Sqlt[i]>3 or Wqlt[i]>3) and DEC[i]>-45 and Bt[i]<15 and It[i]<16 and R255[i]<9 and INC[i]>60 and (Bt[i]>0 or It[i]>0):
         indx.append(i)
 
 indx = np.asarray(indx)

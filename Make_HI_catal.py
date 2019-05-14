@@ -288,7 +288,7 @@ for i in range(M):
     #elif (fon == 'F' or (inc_flg[i]==1 and 'face_on' in inc_note[i])) and Sqlt[i]>2 and Wqlt[i]>2:   
         #flag[i] = 3           
     
-    if inc_flg[i]==0:
+    if True: # inc_flg[i]==0:
         if Sqlt[i]>0:
             flag[i] = 0
         elif Wqlt[i]>0 or Wqlt[i]<0:
@@ -407,8 +407,8 @@ for i in range(M):
         logWimx_e[i] = np.sqrt((eWmx_ESN[i]/Wmx_ESN[i])**2+(d_alfa/np.tan(alfa))**2)/np.log(10)
     else: flag[i]=-1
     
-    if not pgc_ESN[i] in PGC_calib:
-        flag[i]=-1
+    #if not pgc_ESN[i] in PGC_calib:
+        #flag[i]=-1
         
     
 index = np.where(flag>=0)
@@ -557,7 +557,7 @@ myTable.add_column(Column(data=inc_n, name='inc_n'))
 myTable.add_column(Column(data=flag, name='flag', dtype=np.dtype(int)))
 myTable.add_column(Column(data=Sqlt, name='Sqlt', dtype=np.dtype(int)))
 myTable.add_column(Column(data=Wqlt, name='Wqlt', dtype=np.dtype(int)))
-myTable.write('ESN_HI_catal_calib.csv', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 
+myTable.write('ESN_HI_catal_all.csv', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 
 
 
 
