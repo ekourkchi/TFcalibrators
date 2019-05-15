@@ -80,7 +80,8 @@ i_mag = table['i_mag']
 inc   = table['inc']
 QA_sdss = table['QA_sdss']
 QA_wise = table['QA_wise']
-
+w1_mag  = table['w1_mag']
+w2_mag  = table['w2_mag']
 
 inFile  = 'all.alarms'
 table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
@@ -93,26 +94,26 @@ pgc_calibrators = table['pgc']
 
 
 
-for jj in range(len(pgc_ESN)):
-    if QA_wise[jj] == 0 :
-        if pgc_ESN in pgc:
-            print pgc 
+#for jj in range(len(pgc_ESN)):
+    #if QA_wise[jj] == 0 :
+        #if pgc_ESN in pgc:
+            #print pgc 
 
-sys.exit()
+#sys.exit()
 
 
 ######################################
 
-#monList = []
-#for i in range(len(pgc_alarm)):
-    #if pgc_alarm[i] in pgc_ESN and not pgc_alarm[i] in monList:
-        #indx, = np.where(pgc_ESN==pgc_alarm[i])
-        #if Sqlt[indx]>1 and inc[indx]>0:
-            #monList.append(pgc_alarm[i])
-            #if not pgc_alarm[i] in pgc_calibrators:
-                #print pgc_alarm[i]
+monList = []
+for i in range(len(pgc_alarm)):
+    if pgc_alarm[i] in pgc_ESN and not pgc_alarm[i] in monList:
+        indx, = np.where(pgc_ESN==pgc_alarm[i])
+        if Sqlt[indx]>2 and inc[indx]>0 and Wqlt[indx]<1:
+            monList.append(pgc_alarm[i])
+            if not pgc_alarm[i] in pgc_calibrators:
+                print pgc_alarm[i], w1_mag[indx], w2_mag[indx]
             
-#sys.exit()
+sys.exit()
 
 ######################################
 

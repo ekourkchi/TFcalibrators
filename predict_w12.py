@@ -135,7 +135,7 @@ def predict_w1_w2(table, regr_w1, regr, m, b, features, output):
             ###############################################
             
             try: 
-                out = solver(f, 8, 18, threshold=0.001) 
+                out = solver(f, 7, 21, threshold=0.001) 
             except:
                 out=None
             
