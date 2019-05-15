@@ -52,7 +52,6 @@ pgc_adhi    = table['PGC']
 
 
 
-
 inFile  = '../ALFALFA100.csv'
 table   = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=None, encoding=None)
 pgc_alfalfa = table['PGC']
@@ -92,6 +91,14 @@ table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, d
 pgc_calibrators = table['pgc']
 
 
+
+
+for jj in range(len(pgc_ESN)):
+    if QA_wise[jj] == 0 :
+        if pgc_ESN in pgc:
+            print pgc 
+
+sys.exit()
 
 
 ######################################
