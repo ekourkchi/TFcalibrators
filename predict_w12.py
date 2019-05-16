@@ -228,11 +228,31 @@ print len(table['pgc'])
 ##################################################
 ###################### 0
 band = str(sys.argv[1])
-
 features=['g_r', 'r_i', 'i_z', 'pc0']
+output = band+'_w2'
+outName = 'corrected_mags_linewidth_all_'+band+'.csv'
+if len(sys.argv) > 2:
+    if band='g':
+        features=['r_i', 'i_z', 'pc0']
+        output = 'r_w2'
+        outName = 'corrected_mags_linewidth_all_g0.csv'
+    if band='r':
+        features=['g_i', 'i_z', 'pc0']
+        output = 'i_w2'
+        outName = 'corrected_mags_linewidth_all_r0.csv'    
+    if band='i':
+        features=['g_r', 'r_z', 'pc0']
+        output = 'r_w2'
+        outName = 'corrected_mags_linewidth_all_i0.csv'    
+    if band='z':
+        features=['g_r', 'r_i', 'pc0']
+        output = 'r_w2'
+        outName = 'corrected_mags_linewidth_all_z0.csv'
+
+
 
 regr_w1, regr, m, b = RFA_predict(features=features, out=band)
-W2_lst, w2p_lst, W1_lst, w1p_lst = predict_w1_w2(table, regr_w1, regr, m, b, features, band+'_w2')
+W2_lst, w2p_lst, W1_lst, w1p_lst = predict_w1_w2(table, regr_w1, regr, m, b, features, output)
 
 
 
@@ -244,6 +264,6 @@ myTable.add_column(Column(data=W2_lst, name='W2m_', format='%0.2f'))
 myTable.add_column(Column(data=w1p_lst, name='W1p_', format='%0.2f'))
 myTable.add_column(Column(data=w2p_lst, name='W2p_', format='%0.2f'))
 
-myTable.write('corrected_mags_linewidth_all_'+band+'.csv', format='ascii.fixed_width',delimiter='|', bookend=False, overwrite=True) 
+myTable.write(outName, format='ascii.fixed_width',delimiter='|', bookend=False, overwrite=True) 
 
 
