@@ -232,19 +232,19 @@ features=['g_r', 'r_i', 'i_z', 'pc0']
 output = band+'_w2'
 outName = 'corrected_mags_linewidth_all_'+band+'.csv'
 if len(sys.argv) > 2:
-    if band='g':
+    if band=='g':
         features=['r_i', 'i_z', 'pc0']
         output = 'r_w2'
         outName = 'corrected_mags_linewidth_all_g0.csv'
-    if band='r':
+    if band=='r':
         features=['g_i', 'i_z', 'pc0']
         output = 'i_w2'
         outName = 'corrected_mags_linewidth_all_r0.csv'    
-    if band='i':
+    if band=='i':
         features=['g_r', 'r_z', 'pc0']
         output = 'r_w2'
         outName = 'corrected_mags_linewidth_all_i0.csv'    
-    if band='z':
+    if band=='z':
         features=['g_r', 'r_i', 'pc0']
         output = 'r_w2'
         outName = 'corrected_mags_linewidth_all_z0.csv'

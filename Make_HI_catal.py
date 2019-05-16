@@ -15,6 +15,19 @@ from astropy.table import Table, Column
 from redTools import *
 from Kcorrect import *
 from linear_mcmc import *
+
+########################################################### Begin
+inFile  = '../preDigital.csv'
+table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
+pgc_preDigit = table['PGC']
+W20 = table['W20']
+e_W20 =  table['e_W20']
+Flux_HI_preDigit =  (10**table['logFHI'])/0.236
+W_m50_preDigit = 1.012*W20-17.9
+e_W_m50_preDigit = 1.012*e_W20
+
+
+
 ########################################################### Begin
 ctl   = np.genfromtxt("NEST_100001.csv" , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
 PGC_calib = ctl['PGC']
@@ -117,18 +130,23 @@ for i in range(N):
         F_tot+=Flux3[i]
     if n>0: F_av[i]  = 1.*F_tot/n
         
+#x = []
+#y = []
+#for i in range(N):
+    #if pgc[i] in pgc_preDigit:
+        
+        #indx, = np.where(pgc_preDigit==pgc[i])
+        #print Wmx[i], W_m50_preDigit[indx]
+        #if F_av[i]>0 and Flux_HI_preDigit[indx][0]>0:
+            #x.append(F_av[i])
+            #y.append(Flux_HI_preDigit[indx][0])
+        
 
-myTable = Table()
+#plt.plot(x,y,'k.')
+#plt.plot([0,800],[0,800],'r--')
+#plt.show()
 
-#myTable.add_column(Column(data=pgc, name='pgc'))
-#myTable.add_column(Column(data=Vh_av, name='Vh_av'))
-#myTable.add_column(Column(data=Wmx_av, name='Wmx_av'))
-#myTable.add_column(Column(data=eW_av, name='eW_av'))
-#myTable.add_column(Column(data=N_av, name='N_av'))
-#myTable.add_column(Column(data=Wmx, name='Wmx'))
-#myTable.add_column(Column(data=eWmx, name='eWmx'))
-#myTable.add_column(Column(data=F_av, name='F_av'))
-#myTable.add_column(Column(data=NN_av, name='NN_av'))
+#sys.exit()
 
 ########################################################### Begin
 inFile  = '../ALFALFA100.csv'
@@ -267,13 +285,13 @@ print len(PGC_calib)
 print M
 iter = 0
 jj= 0 
-for id in PGC_calib:
-    if not id in pgc_ESN:
-        print "PGC: ", id
+#for id in PGC_calib:
+    #if not id in pgc_ESN:
+        #print "PGC: ", id
 
-for id in PGC_calib:
-    if not id in pgc and not id in pgc_alfalfa and not id in pgc_cornel:
-        print "PGC (No HI): ", id
+#for id in PGC_calib:
+    #if not id in pgc and not id in pgc_alfalfa and not id in pgc_cornel:
+        #print "PGC (No HI): ", id
 
 for i in range(M):
     
@@ -379,8 +397,18 @@ for i in range(M):
         F_tot = 1.*F_tot/n
     F_av_ESN[i] = F_tot
     if bol: eF_av_ESN[i] = 0.07*F_av_ESN[i]
-            
     
+    ### Sue PreDigital catalog if galaxy is not in any modern digital catalog
+    if pgc_ESN[i] in pgc_preDigit and not pgc_ESN[i] in pgc and not pgc_ESN[i] in pgc_alfalfa and not pgc_ESN[i] in pgc_cornel:
+          ind, = np.where(pgc_preDigit==pgc_ESN[i])
+          
+          if W_m50_preDigit[ind][0]>0:
+              Wmx_ESN[i]  = W_m50_preDigit[ind][0]
+              eWmx_ESN[i] = e_W_m50_preDigit[ind][0]
+              F_av_ESN[i] = Flux_HI_preDigit[ind][0]
+              eF_av_ESN[i] = 0.2*F_av_ESN[i]
+          
+          
 print 'iter: ', iter 
 print 'jj: ', jj
 #plt.show() 
@@ -407,8 +435,8 @@ for i in range(M):
         logWimx_e[i] = np.sqrt((eWmx_ESN[i]/Wmx_ESN[i])**2+(d_alfa/np.tan(alfa))**2)/np.log(10)
     else: flag[i]=-1
     
-    #if not pgc_ESN[i] in PGC_calib:
-        #flag[i]=-1
+
+          
         
     
 index = np.where(flag>=0)
@@ -493,6 +521,8 @@ Name = np.asarray(Name)
 ################################
 u_mag = u_mag-0.04
 z_mag = z_mag+0.02
+
+myTable = Table()
 
 myTable.add_column(Column(data=pgc_ESN, name='pgc'))
 myTable.add_column(Column(data=Name, name='Name'))
