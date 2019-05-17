@@ -309,7 +309,11 @@ for i in range(M):
     if True: # inc_flg[i]==0:
         if Sqlt[i]>0:
             flag[i] = 0
+        elif r_mag[i]>0:
+            flag[i] = 0
         elif Wqlt[i]>0 or Wqlt[i]<0:
+            flag[i] = 0
+        elif w1_mag[i]>0:
             flag[i] = 0
 
     if flag[i]>=0:
