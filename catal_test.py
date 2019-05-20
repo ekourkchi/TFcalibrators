@@ -17,6 +17,37 @@ from Kcorrect import *
 from linear_mcmc import *
 
 
+########################################################### Begin
+ctl   = np.genfromtxt("NEST_100001.csv" , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
+PGC_calib = ctl['PGC']
+
+calibLST = []
+calibLST += ["NEST_100002.csv"]
+calibLST += ["NEST_100003.csv"]
+calibLST += ["NEST_100005.csv"]
+calibLST += ["NEST_100006.csv"]
+calibLST += ["NEST_100007.csv"]
+calibLST += ["NEST_100008.csv"]
+calibLST += ["NEST_100014.csv"]
+calibLST += ["NEST_100018.csv"]
+calibLST += ["NEST_100030.csv"]
+calibLST += ["NEST_120002.csv"]
+calibLST += ["NEST_200003.csv"]
+calibLST += ["NEST_200005.csv"]
+calibLST += ["NEST_200006.csv"]
+calibLST += ["NEST_200012.csv"]
+calibLST += ["NEST_200015.csv"]
+calibLST += ["NEST_200016.csv"]
+calibLST += ["NEST_200017.csv"]
+calibLST += ["NEST_200037.csv"]
+calibLST += ["NEST_200045.csv"]
+calibLST += ["NEST_200092.csv"]
+
+for cluster in calibLST:
+    ctl   = np.genfromtxt(cluster , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
+    PGC_calib = np.concatenate((PGC_calib, ctl['PGC']))
+
+########################################################### Begin
 
 inFile = 'ESN_HI_catal_calib.csv'
 table = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=None, encoding=None)
@@ -83,35 +114,25 @@ QA_wise = table['QA_wise']
 w1_mag  = table['w1_mag']
 w2_mag  = table['w2_mag']
 
-inFile  = 'all.alarms'
-table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
-pgc_alarm = table['pgc']
-
-inFile  = 'calibrators.alarms'
-table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
-pgc_calibrators = table['pgc']
 
 
 
 
-#for jj in range(len(pgc_ESN)):
-    #if QA_wise[jj] == 0 :
-        #if pgc_ESN in pgc:
-            #print pgc 
+#for jj in range(len(pgc_helene)):
+    #if not pgc_helene[jj] in pgc_ESN:
+        #if status_helene[jj].strip()=='OK' or status_helene[jj].strip()=='CO' or status_helene[jj].strip()=='RE':
+            #print pgc_helene[jj], status_helene[jj].strip()
 
 #sys.exit()
 
 
 ######################################
+for id in PGC_calib:
+    if id in pgc_ESN:
+        indx, = np.where(pgc_ESN==id)
+        if QA_wise[indx][0]==0:
+            print id
 
-monList = []
-for i in range(len(pgc_alarm)):
-    if pgc_alarm[i] in pgc_ESN and not pgc_alarm[i] in monList:
-        indx, = np.where(pgc_ESN==pgc_alarm[i])
-        if Sqlt[indx]>2 and inc[indx]>0 and Wqlt[indx]<1:
-            monList.append(pgc_alarm[i])
-            if not pgc_alarm[i] in pgc_calibrators:
-                print pgc_alarm[i], w1_mag[indx], w2_mag[indx]
             
 sys.exit()
 
