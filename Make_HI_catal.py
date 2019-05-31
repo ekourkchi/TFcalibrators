@@ -53,11 +53,18 @@ calibLST += ["NEST_200017.csv"]
 calibLST += ["NEST_200037.csv"]
 calibLST += ["NEST_200045.csv"]
 calibLST += ["NEST_200092.csv"]
+calibLST += ["zp_photom_reduced.csv"]
 
 for cluster in calibLST:
     ctl   = np.genfromtxt(cluster , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
     PGC_calib = np.concatenate((PGC_calib, ctl['PGC']))
 
+
+
+zp_calib = np.genfromtxt("zp_photom_reduced.csv" , delimiter='|', filling_values=-1, names=True, dtype=None, encoding=None)
+PGC_zp = zp_calib['PGC']
+Name_zp = zp_calib['Name']
+dist_zp = zp_calib['d']
 ########################################################### Begin
 
 inFile  = '../ADHI.csv'
@@ -110,12 +117,16 @@ for i in range(N):
         W_tot+=1.*Wmx3[i]/e_W3[i]**2
         #F_tot+=Flux3[i]  
         eWmx_tot+=1./e_W3[i]**2
-
+       
     if n>0:
         Wmx[i]  = W_tot/eWmx_tot
         #F_av[i]  = F_tot/n
         eWmx[i] = math.sqrt(1./eWmx_tot)
         NN_av[i] = n
+    elif eW_av[i] <= 20:
+        Wmx[i]  = Wmx_av[i]
+        eWmx[i] = eW_av[i]
+        NN_av[i] = 1
         
     n=0
     F_tot = 0
@@ -192,7 +203,7 @@ Wcfix = 1.015*Wc_cornel-11.0
 e_Wcfix = 1.015*e_Wc_cornel
 
 ########################################################### Begin
-inFile  = '../EDD_distance_cf4_v24.csv'
+inFile  = '../EDD_distance_cf4_v26.csv'
 table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, dtype=None)
 
 pgc_ESN = table['pgc']
@@ -306,7 +317,7 @@ for i in range(M):
     #elif (fon == 'F' or (inc_flg[i]==1 and 'face_on' in inc_note[i])) and Sqlt[i]>2 and Wqlt[i]>2:   
         #flag[i] = 3           
     
-    if True: # inc_flg[i]==0:
+    if True: #pgc_ESN[i] in PGC_calib:
         if Sqlt[i]>0:
             flag[i] = 0
         elif r_mag[i]>0:
@@ -518,13 +529,30 @@ objname_leda = table['objname']
 Name = []
 
 for i in range(len(pgc_ESN)):
-    indx = np.where(pgc_leda==pgc_ESN[i])
-    Name.append(objname_leda[indx][0])
-    
+    try:
+        indx = np.where(pgc_leda==pgc_ESN[i])
+        Name.append(objname_leda[indx][0])
+    except:
+        Name.append("PGC"+str(pgc_ESN[i]))
+
 Name = np.asarray(Name)
+
+for i in range(len(pgc_ESN)):
+    try:
+        indx = np.where(PGC_zp==pgc_ESN[i])
+        Name[i] = Name_zp[indx][0]
+    except:
+        pass
+
+
+
 ################################
-u_mag = u_mag-0.04
-z_mag = z_mag+0.02
+#u_mag = u_mag-0.04
+#z_mag = z_mag+0.02
+
+u_mag[np.where(u_mag>0)] -= 0.04
+z_mag[np.where(z_mag>0)] += 0.02
+
 
 myTable = Table()
 
@@ -592,6 +620,8 @@ myTable.add_column(Column(data=flag, name='flag', dtype=np.dtype(int)))
 myTable.add_column(Column(data=Sqlt, name='Sqlt', dtype=np.dtype(int)))
 myTable.add_column(Column(data=Wqlt, name='Wqlt', dtype=np.dtype(int)))
 myTable.write('ESN_HI_catal_all.csv', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 
+
+#myTable.write('ESN_HI_catal_calib.csv', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 
 
 
 

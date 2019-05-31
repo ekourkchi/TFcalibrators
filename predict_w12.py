@@ -252,6 +252,11 @@ if len(sys.argv) > 2:
 
 
 regr_w1, regr, m, b = RFA_predict(features=features, out=band)
+
+m = [0,0]
+b = [0,0]
+
+
 W2_lst, w2p_lst, W1_lst, w1p_lst = predict_w1_w2(table, regr_w1, regr, m, b, features, output)
 
 
