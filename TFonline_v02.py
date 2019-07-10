@@ -874,13 +874,13 @@ batchplot(table, reject=reject, weird=weird,
 
 reject = [90474] 
 weird = [1707532]
-plot_array(table, reject=reject, weird=weird, 
+batchplot(table, reject=reject, weird=weird, 
            clusterName='NGC80 Cluster', nest='NEST_200045')
 
 
 reject = [70712, 70998, 71360] 
 weird = []
-plot_array(table, reject=reject, weird=weird, 
+batchplot(table, reject=reject, weird=weird, 
            clusterName='Pegasus Cluster', nest='NEST_200092')
 
 
