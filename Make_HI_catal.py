@@ -203,7 +203,7 @@ Wcfix = 1.015*Wc_cornel-11.0
 e_Wcfix = 1.015*e_Wc_cornel
 
 ########################################################### Begin
-inFile  = '../EDD_distance_cf4_v26.csv'
+inFile  = '../EDD_distance_cf4_v27.csv'
 table   = np.genfromtxt(inFile , delimiter='|', filling_values=-1, names=True, dtype=None)
 
 pgc_ESN = table['pgc']
@@ -414,16 +414,17 @@ for i in range(M):
     if bol: eF_av_ESN[i] = 0.07*F_av_ESN[i]
     
     ### Sue PreDigital catalog if galaxy is not in any modern digital catalog
-    if pgc_ESN[i] in pgc_preDigit and not pgc_ESN[i] in pgc and not pgc_ESN[i] in pgc_alfalfa and not pgc_ESN[i] in pgc_cornel:
+    if pgc_ESN[i] in pgc_preDigit:
           ind, = np.where(pgc_preDigit==pgc_ESN[i])
           
-          if W_m50_preDigit[ind][0]>0:
+          if W_m50_preDigit[ind][0]>0 and Wmx_ESN[i]==0:
               Wmx_ESN[i]  = W_m50_preDigit[ind][0]
               eWmx_ESN[i] = e_W_m50_preDigit[ind][0]
+          if Flux_HI_preDigit[ind][0]>0 and F_av_ESN[i]==0:
               F_av_ESN[i] = Flux_HI_preDigit[ind][0]
               eF_av_ESN[i] = 0.2*F_av_ESN[i]
-          
-          
+    
+
 print 'iter: ', iter 
 print 'jj: ', jj
 #plt.show() 
@@ -449,11 +450,8 @@ for i in range(M):
         logWimx[i] = np.log10(Wmx_ESN[i]/np.sin(alfa))
         logWimx_e[i] = np.sqrt((eWmx_ESN[i]/Wmx_ESN[i])**2+(d_alfa/np.tan(alfa))**2)/np.log(10)
     else: flag[i]=-1
-    
-
-          
+       
         
-    
 index = np.where(flag>=0)
 
 print 'iter2: ', len(index[0]) 
@@ -621,7 +619,6 @@ myTable.add_column(Column(data=Sqlt, name='Sqlt', dtype=np.dtype(int)))
 myTable.add_column(Column(data=Wqlt, name='Wqlt', dtype=np.dtype(int)))
 myTable.write('ESN_HI_catal_all.csv', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 
 
-#myTable.write('ESN_HI_catal_calib.csv', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 
 
 
 

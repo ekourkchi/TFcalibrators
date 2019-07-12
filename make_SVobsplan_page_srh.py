@@ -95,6 +95,7 @@ def skyCircle(tt, dd):
     ra0 = ra0[0]
     ra0 = (ra-ra0)%360
 
+    
     return ColumnDataSource({"RA0":ra0, "RA":(ra0+LST_degrees)%360, "DEC":dec})
 #########################################################
 def moonLoc(tt, dd):
@@ -252,12 +253,57 @@ def bokehTile(tileFile, jsonFile, TT=[0,0,0], DD=[2019,3,20],dynamic=False):
     else:
         circleSource = skyCircle(TT, DD)
         p.circle('RA', 'DEC', source=circleSource, size=1.5, color=None)
+        
+    
+    ### Dealing with the Moon
+    inFile = 'moon_loc.csv'
+    tbl_moon = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=np.float)
+    m_ra, m_dec = moonLoc(TT, DD)
+    moonSource = ColumnDataSource({"moon_RAS":tbl_moon['ra'], "moon_DECS":tbl_moon['dec']})
+    moon_RADEC = ColumnDataSource({"moon_ra":[m_ra.deg], "moon_dec":[m_dec.deg]})
+    
+    render_moon = p.circle('moon_ra', 'moon_dec', source=moon_RADEC, size=15, color='blue')
+    
+    print len(tbl_moon['ra'])
+    print len(tbl_moon['dec'])
 
-    callback = CustomJS(args=dict(source=circleSource), code="""
+
+    callback = CustomJS(args=dict(source=circleSource, source_moon=moonSource, source_moon_RADEC=moon_RADEC), code="""
                 // First set times as if they were UTC
                 var t = new Date(time_slider.value);
                 var d = new Date(date_slider.value);
+                var data = source.data;
+                var ra = data['RA'];
+                var ra0 = data['RA0'];
                 
+                var data_moon = source_moon.data;
+                var ras_moon = data_moon['moon_RAS'];
+                var decs_moon = data_moon['moon_DECS'];
+                
+                var moonRADEC = source_moon_RADEC.data;
+                var moon_ra = moonRADEC['moon_ra'];
+                var moon_dec = moonRADEC['moon_dec'];
+                                
+                var Hour  = t.getUTCHours();
+                var Day   = d.getDate();
+                var Month = d.getMonth();
+                
+                var Year = new Array(31,28,31,30,31,30,31,31,30,31,30,31);
+                var all_FULdays = 0;
+                for (var i = 0; i < Month; i++)
+                    all_FULdays=all_FULdays+Year[i];
+                all_FULdays = all_FULdays + (Day-1);
+                
+                if (Hour<12) all_FULdays=all_FULdays+1;
+                
+                var all_minutes = all_FULdays*24+Hour;
+                
+                if (all_minutes<8800) {
+                    moon_ra[0] = ras_moon[all_minutes];
+                    moon_dec[0] = decs_moon[all_minutes];   
+                    //alert(Day+" "+Month+" "+all_minutes);            
+                }
+                                
                 if (t.getUTCHours() < 12) {
                     d.setTime(date_slider.value + 24*3600*1000);
                 } else {
@@ -287,22 +333,26 @@ def bokehTile(tileFile, jsonFile, TT=[0,0,0], DD=[2019,3,20],dynamic=False):
                 var LST_hours = ((18.697374558 + 24.06570982441908 * dt) + mayall_longitude_degrees/15) % 24;
                 var LST_degrees = LST_hours * 15;
                 
-                var data = source.data;
-                var ra = data['RA'];
-                var ra0 = data['RA0'];
+                
+
                 for (var i = 0; i < ra.length; i++) {
                     ra[i] = (ra0[i] + LST_degrees) % 360;
                     //alert(LST_degrees);
                 }
                 source.change.emit();
-                
+                source_moon_RADEC.change.emit();
                 //alert(d);
     """)
     
+
+    
+    
     if dynamic:
         
+        ### TIME
         Timeslider = DateSlider(start=dt(2019,1,1,16,0,0), end=dt(2019,1,2,8,0,0), value=dt(2019,1,2,0,0,0), step=1, title="KPNO local time(hh:mm)", format="%H:%M",width=800)
-
+        
+        ## DATE
         Dateslider = DateSlider(start=dt(2019,1,1,0,0,0), end=dt(2020,1,1,0,0,0), value=dt(2019,3,20,0,0,0), step=1, title="Date of sunset(4pm-8am)", format="%B:%d",width=800)
 
         callback.args['time_slider'] = Timeslider

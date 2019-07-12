@@ -194,14 +194,28 @@ def predict_w1_w2(table, regr_w1, regr, m, b, features, output):
     print output, "Time: ", time.time()-a
     return W2_lst, w2p_lst, W1_lst, w1p_lst
 ##################################################
-inFile = 'ESN_HI_catal_all.csv'
-
+inFile = 'ESN_HI_catal_all.csv.old'
 table   = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=None, encoding=None)
+pgc_old = table['pgc']
+
+inFile = 'ESN_HI_catal_all.csv'
+table   = np.genfromtxt(inFile , delimiter=',', filling_values=-1, names=True, dtype=None, encoding=None)
+pgc = table['pgc']
 table = extinctionCorrect(table)
 table = Kcorrection(table)
 
-##indx = np.asarray(range(650,670))
-##table = trim(table, indx)
+tmp = np.logical_not(np.isin(pgc, pgc_old))  # what is in pgc and not in pgc_old
+indx, = np.where(tmp==True)
+
+indx = np.concatenate((indx,np.where(pgc==26761)[0]))
+indx = np.concatenate((indx,np.where(pgc==701)[0]))
+indx = np.concatenate((indx,np.where(pgc==38148)[0]))
+indx = np.concatenate((indx,np.where(pgc==46127)[0]))
+indx = np.concatenate((indx,np.where(pgc==50073)[0]))
+
+
+###indx = np.asarray(range(0,5))
+table = trim(table, indx)
 
 table['mu50'] = table[band2]+2.5*np.log10(2.*np.pi*(table['R50_'+band2]*60)**2)-2.5*np.log10(table['Wba'])
 dWba2 = ((0.1/6./table['R50_'+band2])**2)*(1+table['Wba']**2)
@@ -230,7 +244,7 @@ print len(table['pgc'])
 band = str(sys.argv[1])
 features=['g_r', 'r_i', 'i_z', 'pc0']
 output = band+'_w2'
-outName = 'corrected_mags_linewidth_all_'+band+'.csv'
+outName = 'corrected_mags_linewidth_all_'+band+'.add.csv'
 if len(sys.argv) > 2:
     if band=='g':
         features=['r_i', 'i_z', 'pc0']
