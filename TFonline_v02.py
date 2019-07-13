@@ -678,6 +678,9 @@ a.footerlink:hover {
       <li><a title="NEST_200037" href="NEST_200037.html">NGC 70 Cluster </a></li>
       <li><a title="NEST_200045" href="NEST_200045.html">NGC 80 Cluster </a></li>
       <li><a title="NEST_200092" href="NEST_200092.html">Pegasus Cluster </a></li>
+      <li></li>
+      <li><a title="shifted to match with the Virgo cluster" href="TFmaster.html">All Cluster </a></li>
+      <li><a href="TFcalibZP.html">ZP calibrators </a></li>
     </ul>
   </nav>
 
