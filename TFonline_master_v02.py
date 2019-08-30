@@ -84,7 +84,7 @@ table   = np.genfromtxt('corrected_mags_linewidth_all.csv' , delimiter='|',
 pgc = table['pgc']
 print len(pgc)
 ########################################################
-def makeCuster(table, band='i', reject=[], weird=[], clusterName='Coma Cluster', 
+def makeCluster(table, band='i', reject=[], weird=[], clusterName='Coma Cluster', 
                nest='NEST_100001', isVirgo=False, slope=None):
     
     ctl   = np.genfromtxt(nest+'.csv' , delimiter='|', filling_values=-1, 
@@ -222,13 +222,13 @@ def allCluster(band='i', slope=None):
 
     reject = [43164,44405,93666]
     weird = [43511]
-    myDict = makeCuster(table, nest='NEST_100001', clusterName='Coma', 
+    myDict = makeCluster(table, nest='NEST_100001', clusterName='Coma', 
                         reject=reject, weird=weird, band=band, slope=slope)
     Clusters['NEST_100001'] = myDict
 
     reject = []
     weird = [41440]
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Virgo', nest='NEST_100002', isVirgo=True, band=band, slope=slope)
     Clusters['NEST_100002'] = myDict
 
@@ -236,13 +236,13 @@ def allCluster(band='i', slope=None):
     ### SOUTH
     reject = []
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Centaurus', nest='NEST_100003', band=band, slope=slope)
     Clusters['NEST_100003'] = myDict
 
     reject = [36323,36328,36330,36608,200155]
     weird = [37140]
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 1367', nest='NEST_100005', band=band, slope=slope)
     Clusters['NEST_100005'] = myDict
 
@@ -250,107 +250,107 @@ def allCluster(band='i', slope=None):
     ### SOUTH
     reject = []
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Hydra', nest='NEST_100006', band=band, slope=slope)
     Clusters['NEST_100006'] = myDict
 
     reject = [56977,2790835]
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 2151 (Hercules)', nest='NEST_100007', band=band, slope=slope)
     Clusters['NEST_100007'] = myDict
 
 
     reject = [37550]
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Ursa Major', nest='NEST_100008', band=band, slope=slope)
     Clusters['NEST_100008'] = myDict
 
     ### SOUTH
     reject = []
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Antila', nest='NEST_100014', band=band, slope=slope)
     Clusters['NEST_100014'] = myDict
 
     reject = [38333]
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC4065', nest='NEST_100018', band=band, slope=slope)
     Clusters['NEST_100018'] = myDict
 
     reject = [23308]
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Cancer', nest='NEST_100030', band=band, slope=slope)
     Clusters['NEST_100030'] = myDict
 
     reject = [] 
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Virgo W', nest='NEST_120002', band=band, slope=slope)
     Clusters['NEST_120002'] = myDict
 
     reject = [] 
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 262', nest='NEST_200003', band=band, slope=slope)
     Clusters['NEST_200003'] = myDict
 
     reject = [3446,4020] 
     weird = [1904373]
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC410 Cluster', nest='NEST_200005', band=band, slope=slope)
     Clusters['NEST_200005'] = myDict
 
     reject = [4740,4876,5008] 
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC507 Cluster', nest='NEST_200006', band=band, slope=slope)
     Clusters['NEST_200006'] = myDict
 
     ### SOUTH
     reject = [] 
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Fornax', nest='NEST_200015', band=band, slope=slope)
     Clusters['NEST_200015'] = myDict
 
     reject = [11150,11199,138562,3647754] 
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 400', nest='NEST_200012', band=band, slope=slope)
     Clusters['NEST_200012'] = myDict
 
     reject = [85526,85643,90431,197699] 
     weird = [5057398]
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 2634/66', nest='NEST_200016', band=band, slope=slope)
     Clusters['NEST_200016'] = myDict
 
     ### SOUTH
     reject = [] 
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 539', nest='NEST_200017', band=band, slope=slope)
     Clusters['NEST_200017'] = myDict
 
     reject = [1724] 
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC70 Cluster', nest='NEST_200037', band=band, slope=slope)
     Clusters['NEST_200037'] = myDict
 
     reject = [90474] 
     weird = [1707532]
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC80 Cluster', nest='NEST_200045', band=band, slope=slope)
     Clusters['NEST_200045'] = myDict
 
     reject = [70712, 70998, 71360] 
     weird = []
-    myDict = makeCuster(table, reject=reject, weird=weird, 
+    myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Pegasus', nest='NEST_200092', band=band, slope=slope)
     Clusters['NEST_200092'] = myDict
     

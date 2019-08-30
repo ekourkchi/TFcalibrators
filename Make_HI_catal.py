@@ -447,6 +447,11 @@ for i in range(M):
         else: 
             alfa = inc[i]*deg2rad
             d_alfa = inc_e[i]*deg2rad
+            
+        if pgc_ESN[i] == 1707532:
+            Wmx_ESN[i] = 119
+            eWmx_ESN[i] = 16
+            
         logWimx[i] = np.log10(Wmx_ESN[i]/np.sin(alfa))
         logWimx_e[i] = np.sqrt((eWmx_ESN[i]/Wmx_ESN[i])**2+(d_alfa/np.tan(alfa))**2)/np.log(10)
     else: flag[i]=-1
