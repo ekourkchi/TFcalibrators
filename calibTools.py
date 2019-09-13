@@ -587,8 +587,6 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
     ID   = ctl['Name']
     dist = ctl['d']
     
-    print len(PGC)
-    
     pgc       = table['pgc']
     logWimx   = table['logWimx']
     logWimx_e = table['logWimx_e']
@@ -772,3 +770,170 @@ def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False):
         
         return fig, ax, Clusters, np.asarray([slope0, slope_e0, zp, zp_e])
 ########################################################
+def LFfunction(M, Ms, alpha):
+    dm = 0.4*(Ms-M)
+    c = 10.**dm
+    b = c**(alpha+1)
+    
+    return b/np.exp(c)
+
+########################################################
+def simulFiled(M0_lst, slope, zp, Ms, alpha, 
+               mag_scatter=0.4, d_mag=0.05, size=100000, seed=0):
+    
+    dM = d_mag
+    np.random.seed(seed)
+    
+    randMGAG = np.random.uniform(low=-25, high=-15, size=size*10)
+    randU = np.random.uniform(low=0, high=1, size=size*10)
+    randLfunct = LFfunction(randMGAG, Ms, alpha)
+    indx, = np.where(randU<randLfunct)
+    simulMag  = randMGAG[indx]
+    simulWimx = (simulMag-zp)/slope + 2.5
+    
+    simulMag = simulMag[:size]
+    simulWimx = simulWimx[:size]
+    
+    
+    ## scattring along the magnitude axis
+    N = len(simulMag)
+    scatterMAG = np.random.normal(0, mag_scatter, N)
+    simulMag += scatterMAG
+    
+    delta_lst = M0_lst*0.
+    stdev_lst = M0_lst*0.
+    
+    for i, M0 in enumerate(M0_lst):
+
+        M2 = M0-dM
+        M1 = M0+dM
+      
+        indx, = np.where(simulMag>M2)
+        A_ = simulMag[indx]
+        A_w = simulWimx[indx]
+        indx,  = np.where(A_<M1)
+        B_ = A_[indx]
+        B_w = A_w[indx]
+        
+        real_mag = slope*(B_w-2.5)+zp  # caluclating the real magnitudes of points
+        
+        # real mag - scattered mag
+        bias = real_mag-B_    
+        delta_lst[i] = np.median(bias)  
+
+    return delta_lst
+        
+        
+########################################################
+def Normal(x, mu, sigma):
+    
+    y = np.exp(-(x-mu)**2/(2.*sigma**2))
+    
+    return y/sigma/np.sqrt(2.*np.pi)
+########################################################
+def simulFiled_2(M0_lst, slope, zp, Ms, alpha, 
+               mag_scatter=0.4, d_mag=0.05, size=100000, seed=0, dW=None):
+    
+    dM = d_mag
+    np.random.seed(seed)
+    
+    randMGAG = np.random.uniform(low=-25, high=-11, size=size*10)
+    randU = np.random.uniform(low=0, high=1, size=size*10)
+    randLfunct = LFfunction(randMGAG, Ms, alpha)
+    indx, = np.where(randU<randLfunct)
+    simulMag  = randMGAG[indx]
+    simulWimx = (simulMag-zp)/slope + 2.5
+    
+    real_mag = simulMag[:size]
+    simulWimx = simulWimx[:size]
+    
+    
+    ## scattring along the magnitude axis
+    N = len(real_mag)
+    scatterMAG = np.random.normal(0, mag_scatter, N)
+    simulMag = real_mag + scatterMAG
+    
+    delta_lst = M0_lst*0.
+    
+    # real mag - scattered mag
+    bias = real_mag-simulMag       
+    
+    for i, M0 in enumerate(M0_lst):
+        
+        if not dW is None:
+            logWimx = (M0-zp)/slope + 2.5
+            weights = Normal(simulMag, M0, dM)*Normal(simulWimx, logWimx, dW)
+        else:
+            weights = Normal(simulMag, M0, dM)
+        
+        delta_lst[i] = np.sum(bias*weights)/np.sum(weights) 
+
+    return delta_lst
+        
+########################################################
+########################################################
+def simulCluster(Mlim_lst, slope, zp, Ms, alpha, 
+               mag_scatter=0.4, size=100000, seed=0):
+    
+    np.random.seed(seed)
+    
+    randMGAG = np.random.uniform(low=-25, high=-11, size=size*10)
+    randU = np.random.uniform(low=0, high=1, size=size*10)
+    randLfunct = LFfunction(randMGAG, Ms, alpha)
+    indx, = np.where(randU<randLfunct)
+    simulMag  = randMGAG[indx]
+    simulWimx = (simulMag-zp)/slope + 2.5
+    
+
+    ## scattring along the magnitude axis
+    N = len(simulMag)
+    scatterMAG = np.random.normal(0, mag_scatter, N)
+    simulMag += scatterMAG
+      
+     
+    simulMag = simulMag[:size]
+    simulWimx = simulWimx[:size]    
+    
+    delta_lst = Mlim_lst*0.    
+    
+    for i, Mlim in enumerate(Mlim_lst):    
+        indx, = np.where(simulMag<Mlim)
+        simulMag_obs = simulMag[indx]
+        simulWimx_obs = simulWimx[indx]
+        simulMag_real =  slope*(simulWimx_obs-2.5)+zp
+      
+        # real mag - observed mag
+        bias = simulMag_real-simulMag_obs 
+          
+        delta_lst[i] = np.median(bias)
+    
+
+    return delta_lst
+        
+########################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
