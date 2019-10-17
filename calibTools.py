@@ -84,7 +84,8 @@ def getReddening_err(table, band1='r', band2='w2'):
 
 ########################################################
 def makeCluster(table, band='i', reject=[], weird=[], clusterName='', 
-               nest='NEST_100001', isVirgo=False, slope=None, pgcFaint=[]):
+               nest='NEST_100001', isVirgo=False, slope=None, 
+               pgcFaint=[], magCorrection=None, OP_IR=False):
     
     ctl   = np.genfromtxt(nest+'.csv' , delimiter='|', filling_values=-1, 
                           names=True, dtype=None, encoding=None)
@@ -94,11 +95,18 @@ def makeCluster(table, band='i', reject=[], weird=[], clusterName='',
     logWimx   = table['logWimx']
     logWimx_e = table['logWimx_e']
     Vhel      = table['Vhel']
+    inc       = table['inc']
+    Sqlt      = table['Sqlt']
 
     Aj_e2     = getReddening_err(table, band1=band, band2='w2')
 
 
     mag = table[band+'_sss']
+    
+    if not magCorrection is None:
+        mag = mag + magCorrection
+    
+    
     mag_e = np.sqrt((mag*0.+0.05)**2+Aj_e2**2)    
     
     pgc_ = []
@@ -115,27 +123,29 @@ def makeCluster(table, band='i', reject=[], weird=[], clusterName='',
         reject.append(42089)    
     
     for i, idd in enumerate(pgc):
-        if idd in PGC and not idd in reject:
-            if isVirgo:
-                if Vhel[i]<600 or (Vhel[i]>1200 and Vhel[i]<1600):
-                    if mag[i]>5 and mag[i]<20:
+        if idd in PGC and not idd in reject:# and inc[i]>0. and Sqlt[i]>1:
+            
+            if (OP_IR==True and table['Sqlt'][i]>=2 and table['Wqlt'][i]>=2) or OP_IR==False:
+                if isVirgo:
+                    if Vhel[i]<600 or (Vhel[i]>1200 and Vhel[i]<1600):
+                        if mag[i]>5 and mag[i]<20:
+                            pgc_.append(idd)
+                            logWimx_.append(logWimx[i])
+                            logWimx_e_.append(logWimx_e[i])
+                            mag_.append(mag[i])
+                            mag_e_.append(mag_e[i])
+                            Sqlt_.append(table['Sqlt'][i])
+                            Wqlt_.append(table['Wqlt'][i])
+                else:
+                     if mag[i]>5 and mag[i]<20:
                         pgc_.append(idd)
                         logWimx_.append(logWimx[i])
                         logWimx_e_.append(logWimx_e[i])
                         mag_.append(mag[i])
                         mag_e_.append(mag_e[i])
                         Sqlt_.append(table['Sqlt'][i])
-                        Wqlt_.append(table['Wqlt'][i])
-            else:
-                 if mag[i]>5 and mag[i]<20:
-                    pgc_.append(idd)
-                    logWimx_.append(logWimx[i])
-                    logWimx_e_.append(logWimx_e[i])
-                    mag_.append(mag[i])
-                    mag_e_.append(mag_e[i])
-                    Sqlt_.append(table['Sqlt'][i])
-                    Wqlt_.append(table['Wqlt'][i])                
-            
+                        Wqlt_.append(table['Wqlt'][i])                
+                
             
     pgc_=np.asarray(pgc_)
     logWimx_=np.asarray(logWimx_)
@@ -156,8 +166,8 @@ def makeCluster(table, band='i', reject=[], weird=[], clusterName='',
             else:
                 dofit[i]=2   # bad quality 
         else:
-            dofit[i]=2   # in the weird list
-        if pgc_[i] in pgcFaint:   # faint Imag < -17
+            dofit[i]=2   # already in the weird list
+        if pgc_[i] in pgcFaint and not pgc_[i] in weird:   # faint Imag < -17
             dofit[i]=3   
         
     indx, = np.where(dofit==2)
@@ -235,142 +245,169 @@ def makeCluster(table, band='i', reject=[], weird=[], clusterName='',
     return outDict
 
 ########################################################
-def allCluster(table, band='i', slope=None, pgcFaint=[]):
+def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
+               addSouth=True, OP_IR=False):
     
     Clusters = {}
 
     reject = [43164,44405,93666]
     weird = [43511]
     myDict = makeCluster(table, nest='NEST_100001', clusterName='Coma', 
-                        reject=reject, weird=weird, band=band, slope=slope, pgcFaint=pgcFaint)
+                        reject=reject, weird=weird, band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_100001'] = myDict
 
     reject = []
     weird = [41440, 40809]
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Virgo', nest='NEST_100002', isVirgo=True, band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Virgo', nest='NEST_100002', isVirgo=True, band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_100002'] = myDict
 
 
     ### SOUTH
-    reject = []
-    weird = []
-    myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Centaurus', nest='NEST_100003', band=band, slope=slope, pgcFaint=pgcFaint)
-    Clusters['NEST_100003'] = myDict
+    if addSouth:
+        reject = []
+        weird = []
+        myDict = makeCluster(table, reject=reject, weird=weird, 
+                   clusterName='Centaurus', nest='NEST_100003', band=band, slope=slope, pgcFaint=pgcFaint, 
+                            magCorrection=magCorrection, OP_IR=OP_IR)
+        Clusters['NEST_100003'] = myDict
 
     reject = [36323,36328,36330,36608,200155]
     weird = [37140]
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 1367', nest='NEST_100005', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Abell 1367', nest='NEST_100005', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_100005'] = myDict
 
 
     ### SOUTH
-    reject = []
-    weird = [31500]
-    myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Hydra', nest='NEST_100006', band=band, slope=slope, pgcFaint=pgcFaint)
-    Clusters['NEST_100006'] = myDict
+    if addSouth:
+        reject = []
+        weird = [31500]
+        myDict = makeCluster(table, reject=reject, weird=weird, 
+                   clusterName='Hydra', nest='NEST_100006', band=band, slope=slope, pgcFaint=pgcFaint, 
+                            magCorrection=magCorrection, OP_IR=OP_IR)
+        Clusters['NEST_100006'] = myDict
 
     reject = [56977,2790835]
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 2151 (Hercules)', nest='NEST_100007', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Abell 2151 (Hercules)', nest='NEST_100007', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_100007'] = myDict
 
 
     reject = [37550]
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Ursa Major', nest='NEST_100008', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Ursa Major', nest='NEST_100008', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_100008'] = myDict
 
     ### SOUTH
-    reject = []
-    weird = []
-    myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Antila', nest='NEST_100014', band=band, slope=slope, pgcFaint=pgcFaint)
-    Clusters['NEST_100014'] = myDict
+    if addSouth:
+        reject = []
+        weird = []
+        myDict = makeCluster(table, reject=reject, weird=weird, 
+                   clusterName='Antlia', nest='NEST_100014', band=band, slope=slope, pgcFaint=pgcFaint, 
+                            magCorrection=magCorrection, OP_IR=OP_IR)
+        Clusters['NEST_100014'] = myDict
 
     reject = [38333]
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC4065', nest='NEST_100018', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='NGC4065', nest='NEST_100018', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_100018'] = myDict
 
     reject = [23308]
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Cancer', nest='NEST_100030', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Cancer', nest='NEST_100030', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_100030'] = myDict
 
     #reject = [39655] 
     #weird = []
     #myDict = makeCluster(table, reject=reject, weird=weird, 
-               #clusterName='Virgo W', nest='NEST_120002', band=band, slope=slope, pgcFaint=pgcFaint)
+               #clusterName='Virgo W', nest='NEST_120002', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        #magCorrection=magCorrection, OP_IR=OP_IR)
     #Clusters['NEST_120002'] = myDict
 
     reject = [] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 262', nest='NEST_200003', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Abell 262', nest='NEST_200003', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200003'] = myDict
 
     reject = [3446,4020] 
     weird = [1904373]
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC410 Cluster', nest='NEST_200005', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='NGC410', nest='NEST_200005', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200005'] = myDict
 
     reject = [4740,4876,5008] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC507 Cluster', nest='NEST_200006', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='NGC507', nest='NEST_200006', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200006'] = myDict
 
     ### SOUTH
-    reject = [] 
-    weird = []
-    myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Fornax', nest='NEST_200015', band=band, slope=slope, pgcFaint=pgcFaint)
-    Clusters['NEST_200015'] = myDict
+    if addSouth:
+        reject = [] 
+        weird = []
+        myDict = makeCluster(table, reject=reject, weird=weird, 
+                   clusterName='Fornax', nest='NEST_200015', band=band, slope=slope, pgcFaint=pgcFaint, 
+                            magCorrection=magCorrection, OP_IR=OP_IR)
+        Clusters['NEST_200015'] = myDict
 
     reject = [11150,11199,138562,3647754] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 400', nest='NEST_200012', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Abell 400', nest='NEST_200012', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200012'] = myDict
 
     reject = [85526,85643,90431,197699] 
     weird = [5057398]
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 2634/66', nest='NEST_200016', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Abell 2634/66', nest='NEST_200016', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200016'] = myDict
 
     ### SOUTH
-    reject = [] 
-    weird = []
-    myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 539', nest='NEST_200017', band=band, slope=slope, pgcFaint=pgcFaint)
-    Clusters['NEST_200017'] = myDict
+    if addSouth:
+        reject = [] 
+        weird = []
+        myDict = makeCluster(table, reject=reject, weird=weird, 
+                   clusterName='Abell 539', nest='NEST_200017', band=band, slope=slope, pgcFaint=pgcFaint, 
+                            magCorrection=magCorrection, OP_IR=OP_IR)
+        Clusters['NEST_200017'] = myDict
 
     reject = [1724] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC70 Cluster', nest='NEST_200037', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='NGC70', nest='NEST_200037', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200037'] = myDict
 
     reject = [90474] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC80 Cluster', nest='NEST_200045', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='NGC80', nest='NEST_200045', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200045'] = myDict
 
     reject = [70712, 70998, 71360] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Pegasus', nest='NEST_200092', band=band, slope=slope, pgcFaint=pgcFaint)
+               clusterName='Pegasus', nest='NEST_200092', band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200092'] = myDict
     
     return Clusters
@@ -399,6 +436,8 @@ def makeFig(band='i', xLim = (1.5,2.9), yLim = (19.5,6.5), MAGabs=False):
     
     ax.tick_params(which='major', length=6, width=1.5, direction='in')
     ax.tick_params(which='minor', length=4, color='#000033', width=1.0, direction='in')
+    
+    ax.set_xticks(np.arange(2,3.5, step=0.5))
 
     if True:
         y_ax = ax.twinx()
@@ -415,6 +454,7 @@ def makeFig(band='i', xLim = (1.5,2.9), yLim = (19.5,6.5), MAGabs=False):
         x_ax.minorticks_on()
         x_ax.tick_params(which='major', length=6, width=1.5, direction='in')
         x_ax.tick_params(which='minor', length=4, color='#000033', width=1.0, direction='in')     
+        x_ax.set_xticks(np.arange(2, 3.5, step=0.5))
 
 
     for tick in ax.xaxis.get_major_ticks():
@@ -430,7 +470,7 @@ def plotCluster(ax, Clusters, nest=None,
                 color=None, plotWeird=False, offset=0, 
                 plotFit=False, alpha=0.7, symbol='o', 
                 plotErrors=False, markersize=4, facecolor=None, 
-                pgcFaint=[]):
+                pgcFaint=[], alphaFaint=0.1, weirdColor='k', alphaWeird=0.2):
     
     if nest is not None:
         myCluster = Clusters[nest]
@@ -493,13 +533,13 @@ def plotCluster(ax, Clusters, nest=None,
         if plotErrors:
             ax.errorbar(logWimx_w, mag_w-offset, 
                         xerr=logWimx_e_w, yerr=mag_e_w, 
-                        fmt=symbol, color='k', 
-                        markersize=4, markerfacecolor='white', alpha=0.2) 
+                        fmt=symbol, color=weirdColor, 
+                        markersize=4, markerfacecolor='white', alpha=alphaWeird) 
         else:
             ax.errorbar(logWimx_w, mag_w-offset, 
                         xerr=logWimx_e_w*0, yerr=mag_e_w*0, 
-                        fmt=symbol, color='k', 
-                        markersize=4, markerfacecolor='white', alpha=0.2)             
+                        fmt=symbol, color=weirdColor, 
+                        markersize=4, markerfacecolor='white', alpha=alphaWeird)             
     
     if plotErrors:
         ax.errorbar(logWimx_, mag_-offset, 
@@ -509,7 +549,7 @@ def plotCluster(ax, Clusters, nest=None,
         if len(indx_)>0:
             ax.errorbar(logWimx_g, mag_g-offset, 
                     xerr=logWimx_e_g, yerr=mag_e_g, 
-                    fmt=symbol, color='k', markersize=4, alpha=0.1, markerfacecolor=facecolor)     
+                    fmt=symbol, color='k', markersize=4, alpha=alphaFaint, markerfacecolor=facecolor)     
     else:
         ax.errorbar(logWimx_, mag_-offset, 
                     xerr=logWimx_e_*0, yerr=mag_e_*0, 
@@ -534,14 +574,17 @@ def plotCluster(ax, Clusters, nest=None,
         y2 = y1
         x3 = x1
         y3 = y1
-        ax.plot([x2,x3],[y2,y3], ':', color='maroon')          
+        ax.plot([x2,x3],[y2,y3], ':', color='maroon')       
+   
+    return logWimx_, mag_, logWimx_e_, mag_e_
 
 ########################################################
 ### 'NEST_100002' is the Virgo cluster, we take it as reference
 def TF_iter(table, key0 = 'NEST_100002', band = 'i', 
-            n_iter=10, pgcFaint=[], verbose=False):
+            n_iter=10, pgcFaint=[], verbose=False, magCorrection=None,
+               addSouth=True, OP_IR=False):
     
-    Clusters = allCluster(table, band=band, slope=None, pgcFaint=pgcFaint)
+    Clusters = allCluster(table, band=band, slope=None, pgcFaint=pgcFaint, magCorrection=magCorrection, addSouth=addSouth, OP_IR=OP_IR)
     
     for repeat in range(n_iter):
         myCluster = Clusters[key0]
@@ -568,7 +611,7 @@ def TF_iter(table, key0 = 'NEST_100002', band = 'i',
         zp = -b/m   # theoretically zp should equal 0 at this point, since all magnitudes were shifted
         slope_e = np.abs(me/m**2)
 
-        Clusters = allCluster(table, band=band, slope=slope, pgcFaint=pgcFaint)
+        Clusters = allCluster(table, band=band, slope=slope, pgcFaint=pgcFaint, magCorrection=magCorrection, addSouth=addSouth, OP_IR=OP_IR)
 
         if verbose:
             print repeat, slope, zp
@@ -579,7 +622,7 @@ def TF_iter(table, key0 = 'NEST_100002', band = 'i',
     
     return Clusters, slope, zp, slope_e
 ########################################################
-def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=None, pgcFaint=[]):
+def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=None, pgcFaint=[], magCorrection=None, OP_IR=False):
     
     ctl   = np.genfromtxt('zp_photom_reduced.csv' , delimiter='|', filling_values=-1, 
                           names=True, dtype=None, encoding=None)
@@ -594,8 +637,11 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
 
     Aj_e2     = getReddening_err(table, band1=band, band2='w2')
 
-
+    
     mag = table[band+'_sss']
+    if not magCorrection is None:
+           mag = mag + magCorrection
+
     mag_e = np.sqrt((mag*0.+0.05)**2+Aj_e2**2)    
     
     pgc_      = []
@@ -610,17 +656,18 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
     
     for i, idd in enumerate(pgc):
         if idd in PGC and not idd in reject:
-            indx, = np.where(PGC==idd)
-            if mag[i]>5 and mag[i]<22:
-                    pgc_.append(idd)
-                    logWimx_.append(logWimx[i])
-                    logWimx_e_.append(logWimx_e[i])
-                    mag_.append(mag[i])
-                    mag_e_.append(mag_e[i])
-                    Sqlt_.append(table['Sqlt'][i])
-                    Wqlt_.append(table['Wqlt'][i])     
-                    dist_.append(dist[indx][0])
-                    ID_.append(ID[indx][0])
+            if (OP_IR==True and table['Sqlt'][i]>=2 and table['Wqlt'][i]>=2) or OP_IR==False:
+                indx, = np.where(PGC==idd)
+                if mag[i]>5 and mag[i]<22:
+                        pgc_.append(idd)
+                        logWimx_.append(logWimx[i])
+                        logWimx_e_.append(logWimx_e[i])
+                        mag_.append(mag[i])
+                        mag_e_.append(mag_e[i])
+                        Sqlt_.append(table['Sqlt'][i])
+                        Wqlt_.append(table['Wqlt'][i])     
+                        dist_.append(dist[indx][0])
+                        ID_.append(ID[indx][0])
             
             
     pgc_=np.asarray(pgc_)
@@ -637,15 +684,15 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
       
     for i in range(N):
         if not pgc_[i] in weird:
-            if not band in ['w1','w2'] and Sqlt_[i]>=1:
+            if not band in ['w1','w2'] and Sqlt_[i]>=2:
                 dofit[i]=1
-            elif band in ['w1','w2'] and Wqlt_[i]>=1:
+            elif band in ['w1','w2'] and Wqlt_[i]>=2:
                 dofit[i]=1
             else:
                 dofit[i]=2
         else:
             dofit[i]=2
-        if pgc_[i] in pgcFaint:   # faint Imag < -17
+        if pgc_[i] in pgcFaint and not pgc_[i] in weird:   # faint Imag < -17
             dofit[i]=3   
                         
     indx,       = np.where(dofit==2)
@@ -717,28 +764,40 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
     return outDict
 
 ########################################################
-def all_ZP(table, band='i', slope=None, pgcFaint=[]):
+def all_ZP(table, band='i', slope=None, pgcFaint=[], magCorrection=None, OP_IR=False):
     
     reject = []
-    weird = []
+    
+    ## remove 42407 (sombrero
+    if not band in ['w1','w2']:
+        weird = [68535, 42407, 28378, 42081, 39461, 44536]
+    else:
+        weird = [68535, 28378, 42081, 39461, 44536, 21102,50073, 5896, 15345]
+    
     myDict = makeZP(table, reject=reject, weird=weird, 
-                    band=band, slope=slope, pgcFaint=pgcFaint)
+                    band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     
     return myDict
 ########################################################
-def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False):
+def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False, 
+                        magCorrection=None, addSouth=True, getZPcalib=False, OP_IR=False):
     
-    Clusters, slope0, zp0, slope_e0 = TF_iter(table, band = band, n_iter=10, verbose=False, pgcFaint=pgcFaint)
+    Clusters, slope0, zp0, slope_e0 = TF_iter(table, band = band, n_iter=10, 
+                                              verbose=False, pgcFaint=pgcFaint, 
+                                              magCorrection=magCorrection, addSouth=addSouth, OP_IR=OP_IR)
 
-    zp_calibs = all_ZP(table, band=band, slope=slope0, pgcFaint=calib_maglim)
+    zp_calibs = all_ZP(table, band=band, slope=slope0, pgcFaint=calib_maglim, 
+                        magCorrection=magCorrection, OP_IR=OP_IR)
     slope = zp_calibs['slope']
     zp    = zp_calibs['zp']
     zp_e = zp_calibs['zp_e']
     
-    Clusters = allCluster(table, band=band, slope=slope, pgcFaint=pgcFaint)
+    Clusters = allCluster(table, band=band, slope=slope, pgcFaint=pgcFaint, 
+                        magCorrection=magCorrection, addSouth=addSouth, OP_IR=OP_IR)
     
     if not makePlot:
-        return Clusters, np.asarray([slope0, slope_e0, zp, zp_e])
+        return Clusters, np.asarray([slope0, slope_e0, zp, zp_e]), zp_calibs
     else:
         
         fig, ax = makeFig(band=band, xLim = (1.5,3.1), yLim = (-12,-24), MAGabs=True)
@@ -746,10 +805,24 @@ def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False):
         key0 = 'NEST_100002'
         myCluster = Clusters[key0]
         zp_virgo = myCluster['zp']
+        
+        N_cluster = 0
 
         for i, key in enumerate(Clusters):
+            
+            myCluster = Clusters[key]
+            
+            pgc =  myCluster['pgc']
+            indx = []
+            indx_ = []    
+            for i, id in enumerate(pgc):
+                if not id in pgcFaint:
+                    indx.append(i)
+                else:
+                    indx_.append(i)  
+            N_cluster += len(pgc[indx])
+            
             if key!=key0:
-                myCluster = Clusters[key]
                 zp_ = myCluster['zp']
                 plotCluster(ax, Clusters, nest=key, offset=zp_-zp, plotErrors=True, 
                             alpha=0.2, markersize=0, pgcFaint=pgcFaint, plotWeird=True) # cmap(i)
@@ -759,16 +832,31 @@ def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False):
         
         ## plotting distance calibrators
         plotCluster(ax, zp_calibs, markersize=8, plotFit=True, color='k', pgcFaint=calib_maglim)
+        
+        pgc = zp_calibs['pgc']
+        indx = []
+        indx_ = []    
+        for i, id in enumerate(pgc):
+            if not id in calib_maglim:
+                indx.append(i)
+            else:
+                indx_.append(i)    
+        N_calib = len(pgc[indx])
 
-
+        ax.text(2.1,-14, "%d" % N_cluster+' Cluster Galaxies', fontsize=12, color='k')
+        ax.text(2.1,-13, "%d" % N_calib+' Zeropoint Galaxies', fontsize=12, color='k')
+    
         Ylm = ax.get_ylim() ; Xlm = ax.get_xlim()
-        x0 = 0.97*Xlm[0]+0.03*Xlm[1]
+        x0 = 0.95*Xlm[0]+0.05*Xlm[1]
         y0 = 0.1*Ylm[0]+0.90*Ylm[1]
         ax.text(x0,y0, "Slope = "+"%.2f" % slope0+'$\pm$'+"%.2f" % slope_e0, fontsize=12, color='k')
         y0 = 0.2*Ylm[0]+0.80*Ylm[1]
         ax.text(x0,y0, "ZP = "+"%.2f" % zp+'$\pm$'+"%.2f" % zp_e, fontsize=12, color='k')
         
-        return fig, ax, Clusters, np.asarray([slope0, slope_e0, zp, zp_e])
+        if not getZPcalib:
+            return fig, ax, Clusters, np.asarray([slope0, slope_e0, zp, zp_e])
+        else:
+            return fig, ax, Clusters, np.asarray([slope0, slope_e0, zp, zp_e]), zp_calibs
 ########################################################
 def LFfunction(M, Ms, alpha):
     dm = 0.4*(Ms-M)
@@ -778,73 +866,25 @@ def LFfunction(M, Ms, alpha):
     return b/np.exp(c)
 
 ########################################################
-def simulFiled(M0_lst, slope, zp, Ms, alpha, 
-               mag_scatter=0.4, d_mag=0.05, size=100000, seed=0):
-    
-    dM = d_mag
-    np.random.seed(seed)
-    
-    randMGAG = np.random.uniform(low=-25, high=-15, size=size*10)
-    randU = np.random.uniform(low=0, high=1, size=size*10)
-    randLfunct = LFfunction(randMGAG, Ms, alpha)
-    indx, = np.where(randU<randLfunct)
-    simulMag  = randMGAG[indx]
-    simulWimx = (simulMag-zp)/slope + 2.5
-    
-    simulMag = simulMag[:size]
-    simulWimx = simulWimx[:size]
-    
-    
-    ## scattring along the magnitude axis
-    N = len(simulMag)
-    scatterMAG = np.random.normal(0, mag_scatter, N)
-    simulMag += scatterMAG
-    
-    delta_lst = M0_lst*0.
-    stdev_lst = M0_lst*0.
-    
-    for i, M0 in enumerate(M0_lst):
-
-        M2 = M0-dM
-        M1 = M0+dM
-      
-        indx, = np.where(simulMag>M2)
-        A_ = simulMag[indx]
-        A_w = simulWimx[indx]
-        indx,  = np.where(A_<M1)
-        B_ = A_[indx]
-        B_w = A_w[indx]
-        
-        real_mag = slope*(B_w-2.5)+zp  # caluclating the real magnitudes of points
-        
-        # real mag - scattered mag
-        bias = real_mag-B_    
-        delta_lst[i] = np.median(bias)  
-
-    return delta_lst
-        
-        
-########################################################
 def Normal(x, mu, sigma):
     
     y = np.exp(-(x-mu)**2/(2.*sigma**2))
     
     return y/sigma/np.sqrt(2.*np.pi)
 ########################################################
-def simulFiled_2(M0_lst, slope, zp, Ms, alpha, 
-               mag_scatter=0.4, d_mag=0.05, size=100000, seed=0, dW=None):
+def simulFiled_Mscatter(slope, zp, Ms, alpha, 
+               mag_scatter=0.4, size=100000, seed=0):
     
-    dM = d_mag
     np.random.seed(seed)
     
-    randMGAG = np.random.uniform(low=-25, high=-11, size=size*10)
+    randMGAG = np.random.uniform(low=-25, high=-13, size=size*10)
     randU = np.random.uniform(low=0, high=1, size=size*10)
     randLfunct = LFfunction(randMGAG, Ms, alpha)
     indx, = np.where(randU<randLfunct)
     simulMag  = randMGAG[indx]
     simulWimx = (simulMag-zp)/slope + 2.5
     
-    real_mag = simulMag[:size]
+    real_mag  = simulMag[:size]
     simulWimx = simulWimx[:size]
     
     
@@ -853,51 +893,117 @@ def simulFiled_2(M0_lst, slope, zp, Ms, alpha,
     scatterMAG = np.random.normal(0, mag_scatter, N)
     simulMag = real_mag + scatterMAG
     
-    delta_lst = M0_lst*0.
-    
     # real mag - scattered mag
-    bias = real_mag-simulMag       
+    bias = real_mag-simulMag
     
-    for i, M0 in enumerate(M0_lst):
-        
-        if not dW is None:
-            logWimx = (M0-zp)/slope + 2.5
-            weights = Normal(simulMag, M0, dM)*Normal(simulWimx, logWimx, dW)
-        else:
-            weights = Normal(simulMag, M0, dM)
-        
-        delta_lst[i] = np.sum(bias*weights)/np.sum(weights) 
-
-    return delta_lst
-        
+    return bias, simulMag, simulWimx
+    
 ########################################################
-########################################################
-def simulCluster(Mlim_lst, slope, zp, Ms, alpha, 
+def simulFiled_Wscatter(slope, zp, Ms, alpha, 
                mag_scatter=0.4, size=100000, seed=0):
     
     np.random.seed(seed)
     
-    randMGAG = np.random.uniform(low=-25, high=-11, size=size*10)
+    randMGAG = np.random.uniform(low=-24.5, high=-13, size=size*10)
     randU = np.random.uniform(low=0, high=1, size=size*10)
     randLfunct = LFfunction(randMGAG, Ms, alpha)
     indx, = np.where(randU<randLfunct)
     simulMag  = randMGAG[indx]
     simulWimx = (simulMag-zp)/slope + 2.5
     
-
+    simulMag = simulMag[:size]
+    reallWimx = simulWimx[:size]
+    
+    
     ## scattring along the magnitude axis
     N = len(simulMag)
-    scatterMAG = np.random.normal(0, mag_scatter, N)
-    simulMag += scatterMAG
-      
-     
-    simulMag = simulMag[:size]
-    simulWimx = simulWimx[:size]    
+    scatterW = np.random.normal(0, np.abs(mag_scatter/slope), N)
+    simulWimx = reallWimx + scatterW
+
+    # real mag - scattered mag
+    bias = simulMag-(slope*(simulWimx-2.5)+zp)
+    
+    return bias, simulMag, simulWimx
+
+########################################################
+
+def simulFiled_MWscatter(slope, zp, Ms, alpha, 
+               mag_scatter=0.4, size=100000, seed=0):
+    
+    np.random.seed(seed)
+    
+    randMGAG = np.random.uniform(low=-24.5, high=-13, size=size*10)
+    randU = np.random.uniform(low=0, high=1, size=size*10)
+    randLfunct = LFfunction(randMGAG, Ms, alpha)
+    indx, = np.where(randU<randLfunct)
+    simulMag  = randMGAG[indx]
+    simulWimx = (simulMag-zp)/slope + 2.5
+    
+    real_mag  = simulMag[:size]
+    reallWimx = simulWimx[:size]
+    
+    
+    ## scattring along the magnitude axis
+    N = len(real_mag)
+    
+    M = real_mag*0
+    W = reallWimx*0
+    
+    for i in range(N):
+    
+        eM = np.random.uniform(low=0, high=mag_scatter, size=1)[0]
+        eW = np.abs(np.sqrt(mag_scatter**2-eM**2)/slope)
+        scatterMAG = np.random.normal(0, eM, 1)[0]
+        scatterW = np.random.normal(0, eW, 1)[0]
+        
+        M[i] = scatterMAG + real_mag[i]
+        W[i] = scatterW + reallWimx[i]
+    
+
+    # real mag - scattered mag
+    bias = real_mag - M 
+    
+    return bias, M, W, real_mag, reallWimx
+
+
+########################################################
+def simulFiled_ensemble(M0_lst, slope, zp, 
+                        bias, simulMag, simulWimx,
+                        d_mag=0.05, dW=None):
+    
+    delta_lst = np.asarray(M0_lst)*0.
+    
+    for i, M0 in enumerate(M0_lst):
+        
+        if not dW is None:
+            logWimx = (M0-zp)/slope + 2.5
+            weights = Normal(simulMag, M0, d_mag)*Normal(simulWimx, logWimx, dW)
+        else:
+            weights = Normal(simulMag, M0, d_mag)
+        
+        delta_lst[i] = np.sum(bias*weights)/np.sum(weights) 
+
+    return delta_lst
+
+########################################################
+def simulCluster(Mlim_lst, slope, zp, 
+                        simulMag, simulWimx, cut_alpha=None):
+    
     
     delta_lst = Mlim_lst*0.    
     
-    for i, Mlim in enumerate(Mlim_lst):    
-        indx, = np.where(simulMag<Mlim)
+    for i, Mlim in enumerate(Mlim_lst):   
+        
+        if cut_alpha is None:
+            indx, = np.where(simulMag<Mlim)
+        
+        else:
+            w = (Mlim-zp)/slope
+            cut_beta = Mlim-cut_alpha*w
+            Mcut = cut_alpha*(simulWimx-2.5)+cut_beta
+            indx, = np.where(simulMag<Mcut)
+        
+        
         simulMag_obs = simulMag[indx]
         simulWimx_obs = simulWimx[indx]
         simulMag_real =  slope*(simulWimx_obs-2.5)+zp
@@ -905,13 +1011,139 @@ def simulCluster(Mlim_lst, slope, zp, Ms, alpha,
         # real mag - observed mag
         bias = simulMag_real-simulMag_obs 
           
-        delta_lst[i] = np.median(bias)
+        delta_lst[i] = np.mean(bias)
     
 
     return delta_lst
         
 ########################################################
+def iterate(SZ, seed=0, 
+            mag_scatter=0.56, Mlim = -17, 
+            along_MAG=True, Simul_size = 100000,
+            Ms=-22, alpha=-1):
+########################################################
+    slope= SZ[0]; zp=SZ[1]
+    
+    np.random.seed(seed)
+    size = Simul_size
 
+    randMGAG = np.random.uniform(low=-25, high=-13, size=size*10)
+    randU = np.random.uniform(low=0, high=1, size=size*10)
+    randLfunct = LFfunction(randMGAG, Ms, alpha)
+    indx, = np.where(randU<randLfunct)
+    simulMag  = randMGAG[indx]
+    simulWimx = (simulMag-zp)/slope + 2.5
+
+    
+    if along_MAG:
+        real_mag = simulMag[:size]
+        simulWimx = simulWimx[:size]
+        ## scattring along the magnitude axis
+        N = len(real_mag)
+        scatterMAG = np.random.normal(0, mag_scatter, N)
+        simulMag = real_mag + scatterMAG
+    
+    else:
+        simulMag = simulMag[:size]
+        reallWimx = simulWimx[:size]
+        ## scattring along the magnitude axis
+        N = len(simulMag)
+        scatterW = np.random.normal(0, np.abs(mag_scatter/slope), N)
+        simulWimx = reallWimx + scatterW    
+    
+
+    indx, = np.where(simulMag<Mlim)
+    simulMag_obs = simulMag[indx]
+    simulWimx_obs = simulWimx[indx]
+
+
+    fit, cov = curve_fit(linfit, simulMag_obs, simulWimx_obs-2.5)
+    m, b = fit
+    m0 = 1./m
+    b0 = -b/m
+    
+    return [m0, b0]
+
+def Cost(SZ0, SZ):
+    
+    slope0 = SZ0[0]; zp0 = SZ0[1]
+    slope  = SZ[0] ; zp  = SZ[1]
+    return np.sqrt(((zp0-zp)/zp0)**2+((slope0-slope)/slope0)**2)
+
+
+
+
+
+
+
+
+def getSimuSZ(SZ0, thresh=0.0001, along_MAG=True, verbose=False, seed=0, 
+            mag_scatter=0.56, Mlim = -17, 
+            Simul_size = 100000,
+            Ms=-22, alpha=-1):
+    
+    SZ1 = SZ0
+    SZ =  iterate(SZ1, 
+                      along_MAG=along_MAG,
+                      seed=seed,
+                      mag_scatter=mag_scatter, Mlim = Mlim,
+                      Simul_size = Simul_size,
+                      Ms=Ms, alpha=alpha)
+    d = Cost(SZ0, SZ)
+    i = 0 
+    while d>thresh:
+
+        if verbose:
+            print SZ0, SZ1, Cost(SZ0, SZ), SZ
+        
+        
+        i1_ds = iterate([SZ1[0]+0.01, SZ1[1]], 
+                      along_MAG=along_MAG,
+                      seed=seed,
+                      mag_scatter=mag_scatter, Mlim = Mlim,
+                      Simul_size = Simul_size,
+                      Ms=Ms, alpha=alpha)
+        i2_ds = iterate([SZ1[0]-0.01, SZ1[1]], 
+                      along_MAG=along_MAG,
+                      seed=seed,
+                      mag_scatter=mag_scatter, Mlim = Mlim,
+                      Simul_size = Simul_size,
+                      Ms=Ms, alpha=alpha)
+        
+        i1_dz = iterate([SZ1[0], SZ1[1]+0.01], 
+                      along_MAG=along_MAG,
+                      seed=seed,
+                      mag_scatter=mag_scatter, Mlim = Mlim,
+                      Simul_size = Simul_size,
+                      Ms=Ms, alpha=alpha)
+        i2_dz = iterate([SZ1[0], SZ1[1]-0.01], 
+                      along_MAG=along_MAG,
+                      seed=seed,
+                      mag_scatter=mag_scatter, Mlim = Mlim,
+                      Simul_size = Simul_size,
+                      Ms=Ms, alpha=alpha)
+        
+        
+        d_dS =  (Cost(SZ0, i1_ds)-Cost(SZ0, i2_ds))/0.02
+        d_dz =  (Cost(SZ0, i1_dz)-Cost(SZ0, i2_dz))/0.02
+
+        SZ1 = [SZ1[0] - 0.1*d_dS, SZ1[1] - 0.1*d_dz]
+        SZ =  iterate(SZ1, 
+                      along_MAG=along_MAG,
+                      seed=seed,
+                      mag_scatter=mag_scatter, Mlim = Mlim,
+                      Simul_size = Simul_size,
+                      Ms=Ms, alpha=alpha)
+        
+        d = Cost(SZ0, SZ)
+    
+        i+=1
+        if i%10==0:
+            print '# of iter:', i, ' Cost: ', '%.4f'%d, SZ 
+        
+        
+    return SZ1
+########################################################
 
 
 
