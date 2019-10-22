@@ -413,7 +413,7 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
     return Clusters
 
 ########################################################
-def makeFig(band='i', xLim = (1.5,2.9), yLim = (19.5,6.5), MAGabs=False):
+def makeFig(band='i', xLim = (1.5,2.9), yLim = (19.5,6.5), MAGabs=False, getTwinAX=False):
     
     fig = py.figure(figsize=(5,5), dpi=100)    
     fig.subplots_adjust(wspace=0, top=0.9, bottom=0.12, left=0.05, right=0.98)
@@ -462,7 +462,10 @@ def makeFig(band='i', xLim = (1.5,2.9), yLim = (19.5,6.5), MAGabs=False):
     for tick in ax.yaxis.get_major_ticks():
                     tick.label.set_fontsize(14) 
             
-    return fig, ax
+    if not getTwinAX:
+        return fig, ax
+    else:
+        return fig, ax, x_ax, y_ax
 
 ########################################################
 ## is nest is None --> we are dealing with zp calibrators
