@@ -403,7 +403,7 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
                         magCorrection=magCorrection, OP_IR=OP_IR)
     Clusters['NEST_200045'] = myDict
 
-    reject = [70712, 70998, 71360] 
+    reject = [70712, 70998, 71360, 71097] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Pegasus', nest='NEST_200092', band=band, slope=slope, pgcFaint=pgcFaint, 
