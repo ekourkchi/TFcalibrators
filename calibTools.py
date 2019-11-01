@@ -771,9 +771,9 @@ def all_ZP(table, band='i', slope=None, pgcFaint=[], magCorrection=None, OP_IR=F
     
     reject = []
     
-    ## remove 42407 (sombrero
+    ## remove 42407 (sombrero) ? 
     if not band in ['w1','w2']:
-        weird = [68535, 42407, 28378, 42081, 39461, 44536]
+        weird = [68535, 28378, 42081, 39461, 44536]
     else:
         weird = [68535, 28378, 42081, 39461, 44536, 21102,50073, 5896, 15345]
     
