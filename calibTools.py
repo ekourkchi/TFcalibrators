@@ -423,9 +423,9 @@ def makeFig(band='i', xLim = (1.5,2.9), yLim = (19.5,6.5), MAGabs=False, getTwin
 
     if MAGabs: # absolute magnitudes
         if not band in ['w1','w2']:
-            ax.set_ylabel(r'$M_{'+band+'^*} \/\/ [AB]$', fontsize=18) 
+            ax.set_ylabel(r'$M^*_{'+band+'} \/\/ [AB]$', fontsize=18) 
         else:
-            ax.set_ylabel(r'$M_{'+band.upper()+'^*} \/\/ [AB]$', fontsize=18)
+            ax.set_ylabel(r'$M^*_{'+band.upper()+'} \/\/ [AB]$', fontsize=18)
         ax.set_xlabel(r'$Log( W_{mx}^i)$', fontsize=18)         
     else:    # apparent magnitudes
         if not band in ['w1','w2']:
