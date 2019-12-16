@@ -627,11 +627,33 @@ def TF_iter(table, key0 = 'NEST_100002', band = 'i',
 ########################################################
 def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=None, pgcFaint=[], magCorrection=None, OP_IR=False):
     
-    ctl   = np.genfromtxt('zp_photom_reduced.csv' , delimiter='|', filling_values=-1, 
+    #ctl   = np.genfromtxt('zp_photom_reduced.csv' , delimiter='|', filling_values=-1, 
+                          #names=True, dtype=None, encoding=None)
+    #PGC  = ctl['PGC']
+    #ID   = ctl['Name']
+    #dist = ctl['d']
+    
+    
+    ctl   = np.genfromtxt('allzp_labels.csv' , delimiter=',', filling_values=-1, 
                           names=True, dtype=None, encoding=None)
     PGC  = ctl['PGC']
     ID   = ctl['Name']
-    dist = ctl['d']
+    dist = 10**((ctl['dm19']-25)/5)
+    
+    
+    #ctl   = np.genfromtxt('TFcal_parameters_trgb.csv' , delimiter=',', filling_values=-1, 
+                          #names=True, dtype=None, encoding=None)
+    #PGC  = ctl['PGC']
+    #ID   = ctl['Name']
+    #dist = 10**((ctl['dmt19']-25)/5)    
+    
+    
+    #ctl   = np.genfromtxt('TFcal_parameters_cepheids.csv' , delimiter=',', filling_values=-1, 
+                          #names=True, dtype=None, encoding=None)
+    #PGC  = ctl['PGC']
+    #ID   = ctl['Name']
+    #dist = 10**((ctl['DMc19']-25)/5)    
+    
     
     pgc       = table['pgc']
     logWimx   = table['logWimx']
@@ -642,6 +664,7 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
 
     
     mag = table[band+'_sss']
+    
     if not magCorrection is None:
            mag = mag + magCorrection
 
@@ -684,6 +707,8 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
     ID_=np.asarray(ID_)
     N = len(pgc_)
     dofit = np.zeros(N)
+    
+              
       
     for i in range(N):
         if not pgc_[i] in weird:
@@ -769,7 +794,7 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
 ########################################################
 def all_ZP(table, band='i', slope=None, pgcFaint=[], magCorrection=None, OP_IR=False):
     
-    reject = []
+    reject = [44536,68535,5896,48334, 40809]
     
     ## remove 42407 (sombrero) ? 
     if not band in ['w1','w2']:
@@ -851,9 +876,9 @@ def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False,
     
         Ylm = ax.get_ylim() ; Xlm = ax.get_xlim()
         x0 = 0.95*Xlm[0]+0.05*Xlm[1]
-        y0 = 0.1*Ylm[0]+0.90*Ylm[1]
-        ax.text(x0,y0, "Slope = "+"%.2f" % slope0+'$\pm$'+"%.2f" % slope_e0, fontsize=12, color='k')
         y0 = 0.2*Ylm[0]+0.80*Ylm[1]
+        ax.text(x0,y0, "Slope = "+"%.2f" % slope0+'$\pm$'+"%.2f" % slope_e0, fontsize=12, color='k')
+        y0 = 0.3*Ylm[0]+0.70*Ylm[1]
         ax.text(x0,y0, "ZP = "+"%.2f" % zp+'$\pm$'+"%.2f" % zp_e, fontsize=12, color='k')
         
         if not getZPcalib:
