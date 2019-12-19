@@ -634,31 +634,37 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
     #dist = ctl['d']
     
     
-    ctl   = np.genfromtxt('allzp_labels.csv' , delimiter=',', filling_values=-1, 
-                          names=True, dtype=None, encoding=None)
-    PGC  = ctl['PGC']
-    ID   = ctl['Name']
-    dist = 10**((ctl['dm19']-25)/5)
+    #ctl   = np.genfromtxt('allzp_labels.csv' , delimiter=',', filling_values=-1, 
+                          #names=True, dtype=None, encoding=None)
+    #PGC  = ctl['PGC']
+    #ID   = ctl['Name']
+    #dist = 10**((ctl['dm19']-25)/5)
     
     
     #ctl   = np.genfromtxt('TFcal_parameters_trgb.csv' , delimiter=',', filling_values=-1, 
                           #names=True, dtype=None, encoding=None)
     #PGC  = ctl['PGC']
     #ID   = ctl['Name']
-    #dist = 10**((ctl['dmt19']-25)/5)    
+    #dist = 10**((ctl['dmt']-25)/5)    
     
     
-    #ctl   = np.genfromtxt('TFcal_parameters_cepheids.csv' , delimiter=',', filling_values=-1, 
-                          #names=True, dtype=None, encoding=None)
-    #PGC  = ctl['PGC']
-    #ID   = ctl['Name']
-    #dist = 10**((ctl['DMc19']-25)/5)    
+    ctl   = np.genfromtxt('TFcal_parameters_cepheids.csv' , delimiter=',', filling_values=-1, 
+                          names=True, dtype=None, encoding=None)
+    PGC  = ctl['PGC']
+    ID   = ctl['Name']
+    dist = 10**((ctl['DMc19']-25)/5)    
+    
+    
+    
+    
     
     
     pgc       = table['pgc']
     logWimx   = table['logWimx']
     logWimx_e = table['logWimx_e']
     Vhel      = table['Vhel']
+    
+    
 
     Aj_e2     = getReddening_err(table, band1=band, band2='w2')
 
