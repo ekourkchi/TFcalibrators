@@ -81,11 +81,47 @@ def getReddening_err(table, band1='r', band2='w2'):
     Aj = F*gamma
     
     return Aj_e2
+########################################################
+def rmsMaker(logWimx, mag, logWimx_e, slope, zp):
+    
+    mag_fit = slope*(logWimx-2.5)+zp
+    delta = mag-mag_fit
+    Y_fit2 = delta
+    std = np.sqrt(np.mean((Y_fit2)**2))
+    indx, = np.where(Y_fit2<3*std)
+    Y_fit1 = Y_fit2[indx]
+    indx, = np.where(Y_fit1>-3*std)
+    Y_fit2 = Y_fit1[indx]
 
+    std = np.sqrt(np.mean((Y_fit2)**2))
+    indx, = np.where(Y_fit2<3*std)
+    Y_fit1 = Y_fit2[indx]
+    indx, = np.where(Y_fit1>-3*std)
+    Y_fit2 = Y_fit1[indx]
+
+    std = np.sqrt(np.mean((Y_fit2)**2))
+    indx, = np.where(Y_fit2<3*std)
+    Y_fit1 = Y_fit2[indx]
+    indx, = np.where(Y_fit1>-3*std)
+    Y_fit2 = Y_fit1[indx]
+
+    std = np.sqrt(np.mean((Y_fit2)**2))
+    indx, = np.where(Y_fit2<3*std)
+    Y_fit1 = Y_fit2[indx]
+    indx, = np.where(Y_fit1>-3*std)
+    Y_fit2 = Y_fit1[indx]
+
+    N = len(Y_fit2)
+    rms =  np.sqrt(np.sum(Y_fit2**2)/(N-1))
+    
+    logWimx_f = (mag-zp)/slope+2.5
+    RMS = np.abs(slope*(np.sqrt(np.sum((logWimx-logWimx_f)**2/logWimx_e**2)/np.sum(1./logWimx_e**2))))
+    
+    return rms, RMS
 ########################################################
 def makeCluster(table, band='i', reject=[], weird=[], clusterName='', 
                nest='NEST_100001', isVirgo=False, slope=None, 
-               pgcFaint=[], magCorrection=None, OP_IR=False):
+               pgcFaint=[], magCorrection=None, OP_IR=False, code=None):
     
     ctl   = np.genfromtxt(nest+'.csv' , delimiter='|', filling_values=-1, 
                           names=True, dtype=None, encoding=None)
@@ -240,7 +276,7 @@ def makeCluster(table, band='i', reject=[], weird=[], clusterName='',
                'nest':nest, 'name':clusterName, 'band':band, 
                'mag':mag_, 'mag_e':mag_e_, 'logWimx':logWimx_, 'logWimx_e':logWimx_e_,
               'pgc_w':pgc_w, 'mag_w':mag_w, 'mag_e_w':mag_e_w, 'logWimx_w':logWimx_w, 
-               'logWimx_e_w':logWimx_e_w, 'reject':reject, 'weird':weird}
+               'logWimx_e_w':logWimx_e_w, 'reject':reject, 'weird':weird, 'code':code, 'DMo':0.}
     
     return outDict
 
@@ -254,14 +290,14 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
     weird = [43511]
     myDict = makeCluster(table, nest='NEST_100001', clusterName='Coma', 
                         reject=reject, weird=weird, band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='Co')
     Clusters['NEST_100001'] = myDict
 
     reject = []
     weird = [41440, 40809]
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Virgo', nest='NEST_100002', isVirgo=True, band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='V')
     Clusters['NEST_100002'] = myDict
 
 
@@ -271,14 +307,14 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
         weird = []
         myDict = makeCluster(table, reject=reject, weird=weird, 
                    clusterName='Centaurus', nest='NEST_100003', band=band, slope=slope, pgcFaint=pgcFaint, 
-                            magCorrection=magCorrection, OP_IR=OP_IR)
+                            magCorrection=magCorrection, OP_IR=OP_IR, code='Ce')
         Clusters['NEST_100003'] = myDict
 
     reject = [36323,36328,36330,36608,200155]
     weird = [37140]
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 1367', nest='NEST_100005', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='A1')
     Clusters['NEST_100005'] = myDict
 
 
@@ -288,14 +324,14 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
         weird = [31500]
         myDict = makeCluster(table, reject=reject, weird=weird, 
                    clusterName='Hydra', nest='NEST_100006', band=band, slope=slope, pgcFaint=pgcFaint, 
-                            magCorrection=magCorrection, OP_IR=OP_IR)
+                            magCorrection=magCorrection, OP_IR=OP_IR, code='Hy')
         Clusters['NEST_100006'] = myDict
 
     reject = [56977,2790835]
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 2151 (Hercules)', nest='NEST_100007', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='He')
     Clusters['NEST_100007'] = myDict
 
 
@@ -303,7 +339,7 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Ursa Major', nest='NEST_100008', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='U')
     Clusters['NEST_100008'] = myDict
 
     ### SOUTH
@@ -312,21 +348,21 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
         weird = []
         myDict = makeCluster(table, reject=reject, weird=weird, 
                    clusterName='Antlia', nest='NEST_100014', band=band, slope=slope, pgcFaint=pgcFaint, 
-                            magCorrection=magCorrection, OP_IR=OP_IR)
+                            magCorrection=magCorrection, OP_IR=OP_IR, code='An')
         Clusters['NEST_100014'] = myDict
 
     reject = [38333]
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC4065', nest='NEST_100018', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='N40')
     Clusters['NEST_100018'] = myDict
 
     reject = [23308]
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Cancer', nest='NEST_100030', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='Ca')
     Clusters['NEST_100030'] = myDict
 
     #reject = [39655] 
@@ -340,21 +376,21 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 262', nest='NEST_200003', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='A26')
     Clusters['NEST_200003'] = myDict
 
     reject = [3446,4020] 
     weird = [1904373]
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC410', nest='NEST_200005', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='N41')
     Clusters['NEST_200005'] = myDict
 
     reject = [4740,4876,5008] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC507', nest='NEST_200006', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='N5')
     Clusters['NEST_200006'] = myDict
 
     ### SOUTH
@@ -363,21 +399,21 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
         weird = []
         myDict = makeCluster(table, reject=reject, weird=weird, 
                    clusterName='Fornax', nest='NEST_200015', band=band, slope=slope, pgcFaint=pgcFaint, 
-                            magCorrection=magCorrection, OP_IR=OP_IR)
+                            magCorrection=magCorrection, OP_IR=OP_IR, code='F')
         Clusters['NEST_200015'] = myDict
 
     reject = [11150,11199,138562,3647754] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 400', nest='NEST_200012', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='A4')
     Clusters['NEST_200012'] = myDict
 
     reject = [85526,85643,90431,197699] 
     weird = [5057398]
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Abell 2634/66', nest='NEST_200016', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='A2')
     Clusters['NEST_200016'] = myDict
 
     ### SOUTH
@@ -386,33 +422,45 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
         weird = []
         myDict = makeCluster(table, reject=reject, weird=weird, 
                    clusterName='Abell 539', nest='NEST_200017', band=band, slope=slope, pgcFaint=pgcFaint, 
-                            magCorrection=magCorrection, OP_IR=OP_IR)
+                            magCorrection=magCorrection, OP_IR=OP_IR, code='A5')
         Clusters['NEST_200017'] = myDict
 
     reject = [1724] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC70', nest='NEST_200037', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='N5')
     Clusters['NEST_200037'] = myDict
 
     reject = [90474] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC80', nest='NEST_200045', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='N8')
     Clusters['NEST_200045'] = myDict
 
     reject = [70712, 70998, 71360, 71097] 
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Pegasus', nest='NEST_200092', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='Pe')
     Clusters['NEST_200092'] = myDict
     
     return Clusters
 
 ########################################################
+def update_DM_Clusters(Clusters, zp):
+    
+    for i, key in enumerate(Clusters):
+        myCluster = Clusters[key]
+        zp_ = myCluster['zp']
+        DM  = zp_-zp
+        myCluster['DMo'] = DM
+    
+    return Clusters
+
+########################################################
+
 def makeFig(band='i', xLim = (1.5,2.9), yLim = (19.5,6.5), MAGabs=False, getTwinAX=False):
     
     fig = py.figure(figsize=(5,5), dpi=100)    
@@ -625,14 +673,19 @@ def TF_iter(table, key0 = 'NEST_100002', band = 'i',
     
     return Clusters, slope, zp, slope_e
 ########################################################
-def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=None, pgcFaint=[], magCorrection=None, OP_IR=False):
+def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=None, pgcFaint=[], magCorrection=None, OP_IR=False, manualInput=None):
     
-    #ctl   = np.genfromtxt('zp_photom_reduced.csv' , delimiter='|', filling_values=-1, 
-                          #names=True, dtype=None, encoding=None)
-    #PGC  = ctl['PGC']
-    #ID   = ctl['Name']
-    #dist = ctl['d']
     
+    if manualInput is not None:
+        PGC, ID, dist = manualInput
+        print "Using the manual ZP file ... ."
+    else:
+        ctl   = np.genfromtxt('zp_photom_reduced.csv' , delimiter='|', filling_values=-1, 
+                              names=True, dtype=None, encoding=None)
+        PGC  = ctl['PGC']
+        ID   = ctl['Name']
+        dist = ctl['d']
+            
     
     #ctl   = np.genfromtxt('allzp_labels.csv' , delimiter=',', filling_values=-1, 
                           #names=True, dtype=None, encoding=None)
@@ -648,11 +701,11 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
     #dist = 10**((ctl['dmt']-25)/5)    
     
     
-    ctl   = np.genfromtxt('TFcal_parameters_cepheids.csv' , delimiter=',', filling_values=-1, 
-                          names=True, dtype=None, encoding=None)
-    PGC  = ctl['PGC']
-    ID   = ctl['Name']
-    dist = 10**((ctl['DMc19']-25)/5)    
+    #ctl   = np.genfromtxt('TFcal_parameters_cepheids.csv' , delimiter=',', filling_values=-1, 
+                          #names=True, dtype=None, encoding=None)
+    #PGC  = ctl['PGC']
+    #ID   = ctl['Name']
+    #dist = 10**((ctl['DMc19']-25)/5)    
     
     
     
@@ -798,7 +851,7 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
     return outDict
 
 ########################################################
-def all_ZP(table, band='i', slope=None, pgcFaint=[], magCorrection=None, OP_IR=False):
+def all_ZP(table, band='i', slope=None, pgcFaint=[], magCorrection=None, OP_IR=False, manualInput=None):
     
     reject = [44536,68535,5896,48334, 40809]
     
@@ -810,25 +863,28 @@ def all_ZP(table, band='i', slope=None, pgcFaint=[], magCorrection=None, OP_IR=F
     
     myDict = makeZP(table, reject=reject, weird=weird, 
                     band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, manualInput=manualInput)
     
     return myDict
 ########################################################
 def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False, 
-                        magCorrection=None, addSouth=True, getZPcalib=False, OP_IR=False):
+                        magCorrection=None, addSouth=True, getZPcalib=False, OP_IR=False, manualInput=None):
     
     Clusters, slope0, zp0, slope_e0 = TF_iter(table, band = band, n_iter=10, 
                                               verbose=False, pgcFaint=pgcFaint, 
                                               magCorrection=magCorrection, addSouth=addSouth, OP_IR=OP_IR)
 
     zp_calibs = all_ZP(table, band=band, slope=slope0, pgcFaint=calib_maglim, 
-                        magCorrection=magCorrection, OP_IR=OP_IR)
+                        magCorrection=magCorrection, OP_IR=OP_IR, manualInput=manualInput)
     slope = zp_calibs['slope']
     zp    = zp_calibs['zp']
     zp_e = zp_calibs['zp_e']
     
     Clusters = allCluster(table, band=band, slope=slope, pgcFaint=pgcFaint, 
                         magCorrection=magCorrection, addSouth=addSouth, OP_IR=OP_IR)
+    
+    
+    Clusters = update_DM_Clusters(Clusters, zp)
     
     if not makePlot:
         return Clusters, np.asarray([slope0, slope_e0, zp, zp_e]), zp_calibs
