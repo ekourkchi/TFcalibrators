@@ -449,13 +449,14 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
     return Clusters
 
 ########################################################
-def update_DM_Clusters(Clusters, zp):
+def update_DM_Clusters(Clusters, zp, adjustZPerr=0):
     
     for i, key in enumerate(Clusters):
         myCluster = Clusters[key]
         zp_ = myCluster['zp']
         DM  = zp_-zp
         myCluster['DMo'] = DM
+        myCluster['zp_e'] = np.sqrt(myCluster['zp_e']**2 + adjustZPerr**2)
     
     return Clusters
 
