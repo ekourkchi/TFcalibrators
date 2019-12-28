@@ -429,7 +429,7 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
     weird = []
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='NGC70', nest='NEST_200037', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR, code='N5')
+                        magCorrection=magCorrection, OP_IR=OP_IR, code='N7')
     Clusters['NEST_200037'] = myDict
 
     reject = [90474] 
@@ -681,11 +681,19 @@ def makeZP(table, band='i', reject=[], weird=[], clusterName='', nest='', slope=
         PGC, ID, dist = manualInput
         print "Using the manual ZP file ... ."
     else:
-        ctl   = np.genfromtxt('zp_photom_reduced.csv' , delimiter='|', filling_values=-1, 
-                              names=True, dtype=None, encoding=None)
+        #ctl   = np.genfromtxt('zp_photom_reduced.csv' , delimiter='|', filling_values=-1, 
+                              #names=True, dtype=None, encoding=None)
+        #PGC  = ctl['PGC']
+        #ID   = ctl['Name']
+        #dist = ctl['d']
+        
+        ctl   = np.genfromtxt('allzpa_labels.csv' , delimiter=',', filling_values=-1, 
+                      names=True, dtype=None, encoding=None)
         PGC  = ctl['PGC']
         ID   = ctl['Name']
-        dist = ctl['d']
+        dist = 10**((ctl['dm19']-25)/5) 
+        
+
             
     
     #ctl   = np.genfromtxt('allzp_labels.csv' , delimiter=',', filling_values=-1, 
