@@ -462,7 +462,7 @@ def update_DM_Clusters(Clusters, zp, adjustZPerr=0):
 
 ########################################################
 
-def makeFig(band='i', xLim = (1.5,2.9), yLim = (19.5,6.5), MAGabs=False, getTwinAX=False):
+def makeFig(band='i', xLim = (1.5,3.1), yLim = (18.75,7.25), MAGabs=False, getTwinAX=False):
     
     fig = py.figure(figsize=(5,5), dpi=100)    
     fig.subplots_adjust(wspace=0, top=0.9, bottom=0.12, left=0.05, right=0.98)
@@ -899,7 +899,7 @@ def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False,
         return Clusters, np.asarray([slope0, slope_e0, zp, zp_e]), zp_calibs
     else:
         
-        fig, ax = makeFig(band=band, xLim = (1.5,3.1), yLim = (-12,-24), MAGabs=True)
+        fig, ax = makeFig(band=band, xLim = (1.5,3.1), yLim = (-12.75,-24.25), MAGabs=True)
 
         key0 = 'NEST_100002'
         myCluster = Clusters[key0]
@@ -942,8 +942,8 @@ def makeTF(table, pgcFaint=[], calib_maglim=[], band='i', makePlot=False,
                 indx_.append(i)    
         N_calib = len(pgc[indx])
 
-        ax.text(2.1,-14, "%d" % N_cluster+' Cluster Galaxies', fontsize=12, color='k')
-        ax.text(2.1,-13, "%d" % N_calib+' Zeropoint Galaxies', fontsize=12, color='k')
+        ax.text(2.25,-15, "%d" % N_cluster+' Cluster Galaxies', fontsize=12, color='k')
+        ax.text(2.25,-14, "%d" % N_calib+' Zeropoint Galaxies', fontsize=12, color='k')
     
         Ylm = ax.get_ylim() ; Xlm = ax.get_xlim()
         x0 = 0.95*Xlm[0]+0.05*Xlm[1]
