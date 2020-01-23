@@ -293,7 +293,7 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
                         magCorrection=magCorrection, OP_IR=OP_IR, code='Co')
     Clusters['NEST_100001'] = myDict
 
-    reject = []
+    reject = [42944]
     weird = [41440, 40809]
     myDict = makeCluster(table, reject=reject, weird=weird, 
                clusterName='Virgo', nest='NEST_100002', isVirgo=True, band=band, slope=slope, pgcFaint=pgcFaint, 
@@ -303,7 +303,7 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
 
     ### SOUTH
     if addSouth:
-        reject = []
+        reject = [39372]
         weird = []
         myDict = makeCluster(table, reject=reject, weird=weird, 
                    clusterName='Centaurus', nest='NEST_100003', band=band, slope=slope, pgcFaint=pgcFaint, 
@@ -320,7 +320,7 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
 
     ### SOUTH
     if addSouth:
-        reject = []
+        reject = [728536]
         weird = [31500]
         myDict = makeCluster(table, reject=reject, weird=weird, 
                    clusterName='Hydra', nest='NEST_100006', band=band, slope=slope, pgcFaint=pgcFaint, 
@@ -372,12 +372,13 @@ def allCluster(table, band='i', slope=None, pgcFaint=[], magCorrection=None,
                         #magCorrection=magCorrection, OP_IR=OP_IR)
     #Clusters['NEST_120002'] = myDict
 
-    reject = [] 
-    weird = []
-    myDict = makeCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 262', nest='NEST_200003', band=band, slope=slope, pgcFaint=pgcFaint, 
-                        magCorrection=magCorrection, OP_IR=OP_IR, code='A26')
-    Clusters['NEST_200003'] = myDict
+    if addSouth:
+        reject = [] 
+        weird = []
+        myDict = makeCluster(table, reject=reject, weird=weird, 
+                   clusterName='Abell 262', nest='NEST_200003', band=band, slope=slope, pgcFaint=pgcFaint, 
+                            magCorrection=magCorrection, OP_IR=OP_IR, code='A26')
+        Clusters['NEST_200003'] = myDict
 
     reject = [3446,4020] 
     weird = [1904373]
