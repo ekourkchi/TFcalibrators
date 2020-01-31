@@ -291,6 +291,9 @@ adhi = 0
 cornel=0
 both = 0 
 alll=0
+alfadhi = 0 
+
+pred = 0 
 
 print len(PGC_calib)
 print M
@@ -303,8 +306,14 @@ jj= 0
 #for id in PGC_calib:
     #if not id in pgc and not id in pgc_alfalfa and not id in pgc_cornel:
         #print "PGC (No HI): ", id
-
+        
+finalCatal   = np.genfromtxt('corrected_mags_linewidth_all.csv' , delimiter='|', 
+                        filling_values=-1, names=True, dtype=None, encoding=None)        
+pgc_finale = finalCatal['pgc']
+        
+        
 for i in range(M):
+  if pgc_ESN[i] in  pgc_finale:
     
     flag[i] = -1
     fon = " ".join(face_on[i].split())
@@ -374,7 +383,7 @@ for i in range(M):
               bool3=True
               cornel+=1
     
-    if bool1 or bool2: both+=1
+    if bool1 and bool2: both+=1
     if bool1 or bool2 or bool3: alll+=1
     if pgc_ESN[i] in pgc or pgc_ESN[i] in pgc_alfalfa or pgc_ESN[i] in pgc_cornel:
         jj+=1
@@ -420,6 +429,7 @@ for i in range(M):
           if W_m50_preDigit[ind][0]>0 and Wmx_ESN[i]==0:
               Wmx_ESN[i]  = W_m50_preDigit[ind][0]
               eWmx_ESN[i] = e_W_m50_preDigit[ind][0]
+              pred +=1
           if Flux_HI_preDigit[ind][0]>0 and F_av_ESN[i]==0:
               F_av_ESN[i] = Flux_HI_preDigit[ind][0]
               eF_av_ESN[i] = 0.2*F_av_ESN[i]
@@ -428,8 +438,11 @@ for i in range(M):
     
 
 print 'iter: ', iter 
-print 'jj: ', jj
-#plt.show() 
+
+
+print "Check paper:", adhi, alf, both, cornel, pred
+
+
 
 m21 = np.zeros(M)
 m21_e = np.zeros(M)
@@ -624,7 +637,7 @@ myTable.add_column(Column(data=inc_n, name='inc_n'))
 myTable.add_column(Column(data=flag, name='flag', dtype=np.dtype(int)))
 myTable.add_column(Column(data=Sqlt, name='Sqlt', dtype=np.dtype(int)))
 myTable.add_column(Column(data=Wqlt, name='Wqlt', dtype=np.dtype(int)))
-#myTable.write('ESN_HI_catal_all.csv', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 
+myTable.write('ESN_HI_catal_all.csv.test', format='ascii.fixed_width',delimiter=',', bookend=False, overwrite=True) 
 
 
 
