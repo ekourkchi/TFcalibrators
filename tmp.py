@@ -1,177 +1,110 @@
-########################################################
-def genCluster(table, reject=[], weird=[], clusterName='', 
-               nest='NEST_100001'):
+def adjustDM(DM1, dDMo, DM2, dDM_i, COLindex, xlim=(-2,2), ylim=(-0.9,0.9), 
+             quad=False, indx=None, xlabel='', ylabel='', bias1=0, bias2=0, single=False, dx=0.2):
     
-    ctl   = np.genfromtxt(nest+'.csv' , delimiter='|', filling_values=-1, 
-                          names=True, dtype=None, encoding=None)
-    PGC = ctl['PGC']
+    DMo  = DM1 + bias1
+    DM_i = DM2 + bias2
     
-    pgc  = table['pgc']
-    Vhel = table['Vhel']
-    Vls  = table['Vls']
-   
-    pgc_ = []
-    Vhel_ = []
-    Vls_ = []
+    fig = py.figure(figsize=(12, 4), dpi=100)    
+    fig.subplots_adjust(wspace=0, top=0.92, bottom=0.12, left=0.06, right=0.98)
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1,1]) 
+    ax1 = plt.subplot(gs[0])
+    if not single:
+        ax2 = plt.subplot(gs[1])
+    from matplotlib.ticker import MultipleLocator
+    ax1.yaxis.set_major_locator(MultipleLocator(0.5))
+    ax1.yaxis.set_minor_locator(MultipleLocator(0.1))
+    if not single:
+        ax2.yaxis.set_major_locator(MultipleLocator(0.5))
+        ax2.yaxis.set_minor_locator(MultipleLocator(0.1))
+    _, y_ax =  set_axes(ax1, xlim, ylim, fontsize=14)
+    y_ax.yaxis.set_major_locator(MultipleLocator(0.5))
+    y_ax.yaxis.set_minor_locator(MultipleLocator(0.1))
+    if not single:
+        _, y_ax =  set_axes(ax2, xlim, ylim, fontsize=14)
+        y_ax.yaxis.set_major_locator(MultipleLocator(0.5))
+        y_ax.yaxis.set_minor_locator(MultipleLocator(0.1))    
+    dDM =  DMo - DM_i 
+    dDM_e = np.sqrt(dDMo**2+dDM_i**2)
     
-    for i, idd in enumerate(pgc):
-        if idd in PGC and not idd in reject:
-            pgc_.append(pgc[i])
-            Vhel_.append(Vhel[i])
-            Vls_.append(Vls[i])
+    v = np.linspace(xlim[0]+0.1, xlim[1]-0.1,200)
+        
+    if indx is None:
+        indx = np.arange(len(dDM))
     
-    Vhel_ = np.asarray(Vhel_)
-    Vls_ = np.asarray(Vls_)
-            
-
-    outDict = {'pgc':pgc_, 'name': clusterName, 'Vhel': Vhel_, 'Vls': Vls_}
+    ax1.plot(COLindex[indx], dDM[indx], '.', alpha=0.05, color='k')    
     
-    return outDict
-########################################################
-def clusters4Vmod(table):
+    if not quad:
+        fit, cov = curve_fit(lineF, COLindex[indx], dDM[indx], sigma=dDM_e[indx])
+        correction = (fit[0]*COLindex+fit[1])
+        if not single:
+            ax1.plot(v,fit[0]*v+fit[1], 'r--')
+    else:
+        fit, cov = np.polyfit(COLindex[indx], dDM[indx], 2, cov=True, w=1./dDM_e[indx])
+        correction = (fit[0]*COLindex**2+fit[1]*COLindex+fit[2])
+        if not single:
+            ax1.plot(v,fit[0]*v**2+fit[1]*v+fit[2], 'r--')
     
-    Clusters = {}
+    print "Fit params:"
+    for i in range(len(fit)):
+        print '%.3f'%fit[i]+'\pm'+'%.3f'%np.sqrt(cov[i][i])
     
-    addSouth=True
-
-    reject = [43164,44405,93666]
-    weird = [43511]
-    myDict = genCluster(table, nest='NEST_100001', clusterName='Coma', 
-                        reject=reject, weird=weird)
-    Clusters['NEST_100001'] = myDict
-
-    reject = []
-    weird = [41440, 40809]
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Virgo', nest='NEST_100002')
-    Clusters['NEST_100002'] = myDict
-
-
-    ### SOUTH
-    if addSouth:
-        reject = []
-        weird = []
-        myDict = genCluster(table, reject=reject, weird=weird, 
-                   clusterName='Centaurus', nest='NEST_100003')
-        Clusters['NEST_100003'] = myDict
-
-    reject = [36323,36328,36330,36608,200155]
-    weird = [37140]
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 1367', nest='NEST_100005')
-    Clusters['NEST_100005'] = myDict
-
-
-    ### SOUTH
-    if addSouth:
-        reject = []
-        weird = [31500]
-        myDict = genCluster(table, reject=reject, weird=weird, 
-                   clusterName='Hydra', nest='NEST_100006')
-        Clusters['NEST_100006'] = myDict
-
-    reject = [56977,2790835]
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 2151 (Hercules)', nest='NEST_100007')
-    Clusters['NEST_100007'] = myDict
-
-
-    reject = [37550]
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Ursa Major', nest='NEST_100008')
-    Clusters['NEST_100008'] = myDict
-
-    ### SOUTH
-    if addSouth:
-        reject = []
-        weird = []
-        myDict = genCluster(table, reject=reject, weird=weird, 
-                   clusterName='Antlia', nest='NEST_100014')
-        Clusters['NEST_100014'] = myDict
-
-    reject = [38333]
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC4065', nest='NEST_100018')
-    Clusters['NEST_100018'] = myDict
-
-    reject = [23308]
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Cancer', nest='NEST_100030')
-    Clusters['NEST_100030'] = myDict
-
-    #reject = [39655] 
-    #weird = []
-    #myDict = genCluster(table, reject=reject, weird=weird, 
-               #clusterName='Virgo W', nest='NEST_120002')
-    #Clusters['NEST_120002'] = myDict
-
-    reject = [] 
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 262', nest='NEST_200003')
-    Clusters['NEST_200003'] = myDict
-
-    reject = [3446,4020] 
-    weird = [1904373]
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC410', nest='NEST_200005')
-    Clusters['NEST_200005'] = myDict
-
-    reject = [4740,4876,5008] 
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC507', nest='NEST_200006')
-    Clusters['NEST_200006'] = myDict
-
-    ### SOUTH
-    if addSouth:
-        reject = [] 
-        weird = []
-        myDict = genCluster(table, reject=reject, weird=weird, 
-                   clusterName='Fornax', nest='NEST_200015')
-        Clusters['NEST_200015'] = myDict
-
-    reject = [11150,11199,138562,3647754] 
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 400', nest='NEST_200012')
-    Clusters['NEST_200012'] = myDict
-
-    reject = [85526,85643,90431,197699] 
-    weird = [5057398]
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Abell 2634/66', nest='NEST_200016')
-    Clusters['NEST_200016'] = myDict
-
-    ### SOUTH
-    if addSouth:
-        reject = [] 
-        weird = []
-        myDict = genCluster(table, reject=reject, weird=weird, 
-                   clusterName='Abell 539', nest='NEST_200017')
-        Clusters['NEST_200017'] = myDict
-
-    reject = [1724] 
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC70', nest='NEST_200037')
-    Clusters['NEST_200037'] = myDict
-
-    reject = [90474] 
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='NGC80', nest='NEST_200045')
-    Clusters['NEST_200045'] = myDict
-
-    reject = [70712, 70998, 71360] 
-    weird = []
-    myDict = genCluster(table, reject=reject, weird=weird, 
-               clusterName='Pegasus', nest='NEST_200092')
-    Clusters['NEST_200092'] = myDict
+    dDM_mod = dDM - correction
+    if not single:
+        ax2.plot(COLindex[indx], dDM_mod[indx], '.', alpha=0.05)
     
-    return Clusters
-########################################################
+
+    ##############################
+    X = COLindex[indx]
+    Y = dDM_mod[indx]
+    Y0 = dDM[indx]
+    Ye = dDM_e[indx]
+    for i in np.arange(xlim[0]+0.1, xlim[1]-0.1,dx):
+        xp = []
+        yp = []
+        yp0 = []
+        for ii in range(len(X)):
+            xi = X[ii]
+            if xi>=i and xi<i+dx:
+                xp.append(xi)
+                yp.append(Y[ii])
+                yp0.append(Y0[ii])
+        if len(xp)>0:
+            if not single:
+                ax2.errorbar(np.median(xp), np.median(yp), yerr=np.std(yp), xerr=np.std(xp), fmt='o', 
+                        color='r', ms=6)     
+            ax1.errorbar(np.median(xp), np.median(yp0), yerr=np.std(yp0), xerr=np.std(xp), fmt='o', 
+                        color='r', ms=6)   
+    ###############################    
+    ax1.plot([-10,10], [0,0], 'k:')
+    if not single:
+        ax2.plot([-10,10], [0,0], 'k:')
+    ###############################
+    c = np.polyfit(X,Y, 2, w=1./Ye)
+    ###############################
+    
+    if not single:
+        Ylm = ax2.get_ylim() ; Xlm = ax2.get_xlim()
+        x0 = 0.9*Xlm[0]+0.1*Xlm[1]
+        y0 = 0.9*Ylm[0]+0.10*Ylm[1]
+        RMS = np.std(Y)
+        ax2.text(x0,y0, r"$RMS$" +": %.2f [mag]" % RMS, fontsize=16, color='k')    
+        x0 = 0.13*Xlm[0]+0.87*Xlm[1]
+        ax2.errorbar(x0, [-0.5], yerr=np.median(dDM_e),xerr=0.05*1.414, fmt='.', color='green', capsize=3)
+    
+    ax1.set_xlabel(xlabel, fontsize=18) 
+    ax1.set_ylabel(r'$'+ylabel+'- DM_{i}$', fontsize=18) 
+    if not single:
+        ax2.set_xlabel(xlabel, fontsize=18) 
+        ax2.set_ylabel(r'$C('+ylabel+') - DM_{i}$', fontsize=18) 
+    
+
+    
+    plt.subplots_adjust(hspace=.0, wspace=0.25)
+    
+    if single:
+        ax2=None
+    
+    return [ax1,ax2], DMo-correction, fit, cov
+    
+###############################    ###############################
+
